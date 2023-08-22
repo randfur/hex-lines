@@ -1,3 +1,10 @@
+# 2023-08-23
+- Wondering about the number of draw calls since repeated shapes can't be instanced since instancing is already being used for the hex line itself.
+  - Internet suggests 100s-1000 draw calls are okay.
+  - Shouldn't be more than 100s of draw calls in the extreme case here. Should be alright.
+- Created GitHub repo: https://github.com/randfur/hex-lines
+- Recreated first hex from scratch with a couple of peeks at syntax from original experiment.
+
 # 2023-08-22
 - Library version of [hex-lines-webgl](https://github.com/randfur/experiments/tree/main/2023/hex-lines-webgl).
 - Unsure how to manage GPU memory.
@@ -18,6 +25,3 @@
     }
 - Every buffer needs to have the vertex attributes bound separately.
   - Using vertex array objects to save on the switching.
-- Wondering about the number of draw calls since repeated shapes can't be instanced since instancing is already being used for the hex line itself.
-  - Internet suggests 100s-1000 draw calls are okay.
-  - Shouldn't be more than 100s of draw calls in the extreme case here. Should be alright.
