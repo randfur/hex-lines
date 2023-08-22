@@ -1,0 +1,12 @@
+<body></body>
+<script>
+const pages = [
+  'basic',
+];
+document.body.innerHTML = `
+  Examples:<br>
+  <ul>
+  ${pages.map(page => `<li><a href=${page}.html>${page}</a></li>`).join('\n')}
+  </ul>
+`;
+</script>
