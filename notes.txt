@@ -1,0 +1,23 @@
+# 2023-08-22
+- Library version of [hex-lines-webgl](https://github.com/randfur/experiments/tree/main/2023/hex-lines-webgl).
+- Unsure how to manage GPU memory.
+- Going to go with very basic approach, everything is a separate buffer and needs to be drawn separately.
+- Possible optimisation later if needed would be to bundle multiple things into one buffer.
+  - Can probably add that as an additional API.
+  - Create a bundle of handles that cannot be mutated.
+  - Would be useful for plain playback separate from editing.
+- API surface:
+  - class HexLinesContext {
+      constructor(HTMLCanvasElement);
+      add(bufferData): HexLinesHandle;
+    }
+  - class HexLinesHandle {
+      update(bufferData);
+      draw();
+      remove();
+    }
+- Every buffer needs to have the vertex attributes bound separately.
+  - Using vertex array objects to save on the switching.
+- Wondering about the number of draw calls since repeated shapes can't be instanced since instancing is already being used for the hex line itself.
+  - Internet suggests 100s-1000 draw calls are okay.
+  - Shouldn't be more than 100s of draw calls in the extreme case here. Should be alright.
