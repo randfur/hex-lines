@@ -7,14 +7,52 @@ export class HexLinesContext {
     this.gl.shaderSource(vertexShader, `#version 300 es
       precision mediump float;
 
-      const vec2 kVertices[] = vec2[3](
-        vec2(0, 0),
-        vec2(1, 0),
-        vec2(0, 1)
+      struct HexLineVertex {
+        vec2 start;
+        vec2 end;
+        float progress;
+      };
+
+      const HexLineVertex kHexLineVertices[] = HexLineVertex[30](
+        // Start hex.
+        HexLineVertex(vec2(sqrt(3.) / 4., 0.25), vec2(0, 0), 0.),
+        HexLineVertex(vec2(0, 0.5), vec2(0, 0), 0.),
+        HexLineVertex(vec2(-sqrt(3.) / 4., 0.25), vec2(0, 0), 0.),
+        HexLineVertex(vec2(-sqrt(3.) / 4., 0.25), vec2(0, 0), 0.),
+        HexLineVertex(vec2(sqrt(3.) / 4., -0.25), vec2(0, 0), 0.),
+        HexLineVertex(vec2(sqrt(3.) / 4., 0.25), vec2(0, 0), 0.),
+        HexLineVertex(vec2(-sqrt(3.) / 4., 0.25), vec2(0, 0), 0.),
+        HexLineVertex(vec2(-sqrt(3.) / 4., -0.25), vec2(0, 0), 0.),
+        HexLineVertex(vec2(sqrt(3.) / 4., -0.25), vec2(0, 0), .0),
+        HexLineVertex(vec2(sqrt(3.) / 4., -0.25), vec2(0, 0), 0.),
+        HexLineVertex(vec2(-sqrt(3.) / 4., -0.25), vec2(0, 0), 0.),
+        HexLineVertex(vec2(0, -0.5), vec2(0, 0), 0.)
+
+        // Bridge
+        HexLineVertex(vec2(0, -0.5), vec2(0, 0), 0.),
+        HexLineVertex(vec2(0, 0.5), vec2(0, 0), 0.),
+        HexLineVertex(vec2(0, 0), vec2(0, 0.5), 1.),
+        HexLineVertex(vec2(0, -0.5), vec2(0, 0), 0.),
+        HexLineVertex(vec2(0, 0), vec2(0, 0.5), 1.),
+        HexLineVertex(vec2(0, 0), vec2(0, -0.5), 1.),
+
+        // End hex.
+        HexLineVertex(vec2(0, 0), vec2(sqrt(3.) / 4., 0.25), 1.),
+        HexLineVertex(vec2(0, 0), vec2(0, 0.5), 1.),
+        HexLineVertex(vec2(0, 0), vec2(-sqrt(3.) / 4., 0.25), 1.),
+        HexLineVertex(vec2(0, 0), vec2(-sqrt(3.) / 4., 0.25), 1.),
+        HexLineVertex(vec2(0, 0), vec2(sqrt(3.) / 4., -0.25), 1.),
+        HexLineVertex(vec2(0, 0), vec2(sqrt(3.) / 4., 0.25), 1.),
+        HexLineVertex(vec2(0, 0), vec2(-sqrt(3.) / 4., 0.25), 1.),
+        HexLineVertex(vec2(0, 0), vec2(-sqrt(3.) / 4., -0.25), 1.),
+        HexLineVertex(vec2(0, 0), vec2(sqrt(3.) / 4., -0.25), 10),
+        HexLineVertex(vec2(0, 0), vec2(sqrt(3.) / 4., -0.25), 1.),
+        HexLineVertex(vec2(0, 0), vec2(-sqrt(3.) / 4., -0.25), 1.),
+        HexLineVertex(vec2(0, 0), vec2(0, -0.5), 1.)
       );
 
       void main() {
-        gl_Position = vec4(kVertices[gl_VertexID], 0, 1);
+        gl_Position = vec4(kHexLineVertices[gl_VertexID].start, 0, 1);
       }
     `);
     this.gl.compileShader(vertexShader);
@@ -39,7 +77,7 @@ export class HexLinesContext {
     this.gl.linkProgram(program);
     console.log(this.gl.getProgramInfoLog(program));
     this.gl.useProgram(program);
-    this.gl.drawArrays(this.gl.TRIANGLES, 0, 3);
+    this.gl.drawArrays(this.gl.TRIANGLES, 0, 12);
 
     // TODO:
     // - Use pixelSize.
