@@ -7,6 +7,21 @@ export class HexLinesContext {
     this.gl.shaderSource(vertexShader, `#version 300 es
       precision mediump float;
 
+      uniform float width;
+      uniform float height;
+      uniform float pixelSize;
+      uniform vec3 transform;
+
+      in vec2 startPosition;
+      in float startSize;
+      in uint startRGBA;
+
+      in vec2 endPosition;
+      in float endSize;
+      in uint endRGBA;
+
+      out vec4 vertexColour;
+
       struct HexLineVertex {
         vec2 start;
         vec2 end;
@@ -26,7 +41,7 @@ export class HexLinesContext {
         HexLineVertex(vec2(sqrt(3.) / 4., -0.25), vec2(0, 0), .0),
         HexLineVertex(vec2(sqrt(3.) / 4., -0.25), vec2(0, 0), 0.),
         HexLineVertex(vec2(-sqrt(3.) / 4., -0.25), vec2(0, 0), 0.),
-        HexLineVertex(vec2(0, -0.5), vec2(0, 0), 0.)
+        HexLineVertex(vec2(0, -0.5), vec2(0, 0), 0.),
 
         // Bridge
         HexLineVertex(vec2(0, -0.5), vec2(0, 0), 0.),
@@ -45,14 +60,29 @@ export class HexLinesContext {
         HexLineVertex(vec2(0, 0), vec2(sqrt(3.) / 4., 0.25), 1.),
         HexLineVertex(vec2(0, 0), vec2(-sqrt(3.) / 4., 0.25), 1.),
         HexLineVertex(vec2(0, 0), vec2(-sqrt(3.) / 4., -0.25), 1.),
-        HexLineVertex(vec2(0, 0), vec2(sqrt(3.) / 4., -0.25), 10),
+        HexLineVertex(vec2(0, 0), vec2(sqrt(3.) / 4., -0.25), 1.),
         HexLineVertex(vec2(0, 0), vec2(sqrt(3.) / 4., -0.25), 1.),
         HexLineVertex(vec2(0, 0), vec2(-sqrt(3.) / 4., -0.25), 1.),
         HexLineVertex(vec2(0, 0), vec2(0, -0.5), 1.)
       );
 
+      vec2 rotate(vec2 v, vec2 rotation) {
+        return vec2(
+          v.x * rotation.x - v.y * rotation.y,
+          v.x * rotation.y + v.y * rotation.x);
+      }
+
       void main() {
-        gl_Position = vec4(kHexLineVertices[gl_VertexID].start, 0, 1);
+        vec2 rotation = normalize(end - start);
+        HexLineVertex hexLineVertex = kHexLineVertices[gl_VertexID];
+        gl_Position = vec4(
+          mix(
+            startPosition + rotate(hexLineVertex.start, rotation) * startSize,
+            endPosition + rotate(hexLineVertex.end, rotation) * endSize,
+            hexLineVertex.progress),
+          0, 1);
+
+        vertexColour = mix(rgbaToClour(startRGBA), rgbaToClour(endRGBA), hexLineVertex.progress);
       }
     `);
     this.gl.compileShader(vertexShader);
@@ -62,10 +92,11 @@ export class HexLinesContext {
     this.gl.shaderSource(fragmentShader, `#version 300 es
       precision mediump float;
 
-      out vec4 colour;
+      in vec4 vertexColour;
+      out vec4 fragmentColour;
 
       void main() {
-        colour = vec4(1, 0, 0, 1);
+        fragmentColour = vertexColour;
       }
     `);
     this.gl.compileShader(fragmentShader);
@@ -77,11 +108,12 @@ export class HexLinesContext {
     this.gl.linkProgram(program);
     console.log(this.gl.getProgramInfoLog(program));
     this.gl.useProgram(program);
-    this.gl.drawArrays(this.gl.TRIANGLES, 0, 12);
 
     // TODO:
     // - Use pixelSize.
-    // - Recreate hex line drawing.
+
+    // Testing:
+    this.gl.drawArrays(this.gl.TRIANGLES, 0, 30);
   }
 
   add(bufferData) {

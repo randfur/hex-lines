@@ -4,6 +4,15 @@
   - Shouldn't be more than 100s of draw calls in the extreme case here. Should be alright.
 - Created GitHub repo: https://github.com/randfur/hex-lines
 - Recreated first hex from scratch with a couple of peeks at syntax from original experiment.
+- Created hard coded hex line between two points.
+- Writing from scratch has yielded a much simpler approach.
+  - Down to three parameters per vertex.
+  - Basis vectors of start hex, basis vectors of end hex and percentage between start and end.
+  - Percentage fits nicely with lerp() (called mix() in GLSL).
+- Remaining things:
+  - Canvas width, height.
+  - Scaling position and size by pixelSize.
+  - Adding transform matrix uniform.
 
 # 2023-08-22
 - Library version of [hex-lines-webgl](https://github.com/randfur/experiments/tree/main/2023/hex-lines-webgl).
