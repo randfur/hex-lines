@@ -90,7 +90,7 @@ export class HexLinesContext {
       }
     `);
     this.gl.compileShader(vertexShader);
-    console.log(this.gl.getShaderInfoLog(vertexShader));
+    logIf(this.gl.getShaderInfoLog(vertexShader));
 
     const fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
     this.gl.shaderSource(fragmentShader, `#version 300 es
@@ -104,22 +104,32 @@ export class HexLinesContext {
       }
     `);
     this.gl.compileShader(fragmentShader);
-    console.log(this.gl.getShaderInfoLog(fragmentShader));
+    logIf(this.gl.getShaderInfoLog(fragmentShader));
 
     const program = this.gl.createProgram();
     this.gl.attachShader(program, vertexShader);
     this.gl.attachShader(program, fragmentShader);
     this.gl.linkProgram(program);
-    console.log(this.gl.getProgramInfoLog(program));
+    logIf(this.gl.getProgramInfoLog(program));
     this.gl.useProgram(program);
 
-    // TODO:
-    // - Use pixelSize.
-
-    // Testing:
-    this.gl.drawArrays(this.gl.TRIANGLES, 0, 30);
+    this.attributeLocations = Object.fromEntries([
+      'startPosition',
+      'startSize',
+      'startRGBA',
+      'endPosition',
+      'endSize',
+      'endRGBA',
+    ].map(name => [name, this.gl.getAttribLocation(program, name)]));
+    this.uniformLocations = Object.fromEntries([
+      'width',
+      'height',
+      'pixelSize',
+      'transform',
+    ].map(name => [name, this.gl.getUniformLocation(program, name)]));
   }
 
+  // [ x, y, size, rgba, ... ]
   add(bufferData) {
     return new HexLinesHandle(this, bufferData);
   }
@@ -133,23 +143,59 @@ class HexLinesHandle {
     this.gl = this.hexLinesContext.gl;
     this.vertexArray = this.gl.createVertexArray();
     this.gl.bindVertexArray(this.vertexArray);
-    // this.gl.enableVertexAttribArray(this.hexLinesContext.
+
     this.buffer = this.gl.createBuffer();
     this.update(bufferData);
+
+    const {
+      startPosition,
+      startSize,
+      startRGBA,
+      endPosition,
+      endSize,
+      endRGBA,
+    } = this.hexLinesContext.attributeLocations;
+    this.gl.enableVertexAttribArray(startPosition);
+    this.gl.enableVertexAttribArray(startSize);
+    this.gl.enableVertexAttribArray(startRGBA);
+    this.gl.enableVertexAttribArray(endPosition);
+    this.gl.enableVertexAttribArray(endSize);
+    this.gl.enableVertexAttribArray(endRGBA);
+
+    this.gl.vertexAttribPointer(startPosition, 2, this.gl.FLOAT, this.gl.FALSE, kBytesPerHexPoint, 0);
+    this.gl.vertexAttribPointer(startSize, 1, this.gl.FLOAT, this.gl.FALSE, kBytesPerHexPoint, 2 * 4);
+    this.gl.vertexAttribIPointer(startRGBA, 1, this.gl.UNSIGNED_INT, kBytesPerHexPoint, 3 * 4);
+    this.gl.vertexAttribPointer(endPosition, 2, this.gl.FLOAT, this.gl.FALSE, kBytesPerHexPoint, kBytesPerHexPoint + 0);
+    this.gl.vertexAttribPointer(endSize, 1, this.gl.FLOAT, this.gl.FALSE, kBytesPerHexPoint, kBytesPerHexPoint + 2 * 4);
+    this.gl.vertexAttribIPointer(endRGBA, 1, this.gl.UNSIGNED_INT, kBytesPerHexPoint, kBytesPerHexPoint + 3 * 4);
+
+    this.gl.vertexAttribDivisor(startPosition, 1);
+    this.gl.vertexAttribDivisor(startSize, 1);
+    this.gl.vertexAttribDivisor(startRGBA, 1);
+    this.gl.vertexAttribDivisor(endPosition, 1);
+    this.gl.vertexAttribDivisor(endSize, 1);
+    this.gl.vertexAttribDivisor(endRGBA, 1);
   }
 
   update(bufferData) {
     this.length = bufferData.bytesLength / kBytesPerHexPoint;
-    this.gl.bufferData(this.buffer, bufferData);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, bufferData, this.gl.DYNAMIC_DRAW);
   }
 
   draw() {
     this.gl.bindVertexArray(this.vertexArray);
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer, this.gl.DYNAMIC_DRAW);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
     this.gl.drawArraysInstanced(this.gl.TRIANGLES, 0, 30, this.length - 1);
   }
 
   remove() {
     this.gl.deleteBuffer(this.buffer);
+  }
+}
+
+function logIf(text) {
+  if (text !== '') {
+    console.log(text);
   }
 }
