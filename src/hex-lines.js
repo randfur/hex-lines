@@ -72,8 +72,12 @@ export class HexLinesContext {
           v.x * rotation.y + v.y * rotation.x);
       }
 
+      vec4 rgbaToColour(uint rgba) {
+        return vec4(1, 0, 0, 1);
+      }
+
       void main() {
-        vec2 rotation = normalize(end - start);
+        vec2 rotation = normalize(endPosition - startPosition);
         HexLineVertex hexLineVertex = kHexLineVertices[gl_VertexID];
         gl_Position = vec4(
           mix(
@@ -82,7 +86,7 @@ export class HexLinesContext {
             hexLineVertex.progress),
           0, 1);
 
-        vertexColour = mix(rgbaToClour(startRGBA), rgbaToClour(endRGBA), hexLineVertex.progress);
+        vertexColour = mix(rgbaToColour(startRGBA), rgbaToColour(endRGBA), hexLineVertex.progress);
       }
     `);
     this.gl.compileShader(vertexShader);
