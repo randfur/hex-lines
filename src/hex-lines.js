@@ -7,10 +7,10 @@ export class HexLinesContext {
     this.gl.shaderSource(vertexShader, `#version 300 es
       precision mediump float;
 
-      uniform float width;
-      uniform float height;
-      uniform float pixelSize;
-      uniform vec3 transform;
+      // uniform float width;
+      // uniform float height;
+      // uniform float pixelSize;
+      // uniform vec3 transform;
 
       in vec2 startPosition;
       in float startSize;
@@ -73,7 +73,11 @@ export class HexLinesContext {
       }
 
       vec4 rgbaToColour(uint rgba) {
-        return vec4(1, 0, 0, 1);
+        return vec4(
+          float((rgba >> (3 * 8)) & 0xffu) / 255.,
+          float((rgba >> (2 * 8)) & 0xffu) / 255.,
+          float((rgba >> (1 * 8)) & 0xffu) / 255.,
+          float((rgba >> (0 * 8)) & 0xffu) / 255.);
       }
 
       void main() {
@@ -127,6 +131,9 @@ export class HexLinesContext {
       'pixelSize',
       'transform',
     ].map(name => [name, this.gl.getUniformLocation(program, name)]));
+
+    this.gl.enable(this.gl.BLEND);
+    this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
   }
 
   // [ x, y, size, rgba, ... ]
@@ -178,7 +185,7 @@ class HexLinesHandle {
   }
 
   update(bufferData) {
-    this.length = bufferData.bytesLength / kBytesPerHexPoint;
+    this.length = bufferData.byteLength / kBytesPerHexPoint;
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, bufferData, this.gl.DYNAMIC_DRAW);
   }
@@ -192,6 +199,17 @@ class HexLinesHandle {
   remove() {
     this.gl.deleteBuffer(this.buffer);
   }
+}
+
+const sharedArrayBuffer = new ArrayBuffer(4);
+const sharedDataView = new DataView(sharedArrayBuffer);
+export function rgbaToFloat32({r, g, b, a}) {
+  sharedDataView.setUint32(0,
+    ((r & 0xff) << (3 * 8)) |
+    ((g & 0xff) << (2 * 8)) |
+    ((b & 0xff) << (1 * 8)) |
+    ((a & 0xff) << (0 * 8)));
+  return sharedDataView.getFloat32(0);
 }
 
 function logIf(text) {

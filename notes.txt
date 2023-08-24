@@ -1,4 +1,13 @@
 # 2023-08-23
+- Added colour support.
+  - Using GL blend modes to support alpha.
+  - this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA) does an interpolation from destination pixel to source pixel using the source's alpha.
+  - Exposed rgbaToFloat32() helper function.
+    - Weirdly found that object parameter destructuring had better performance than flat parameters??
+      - https://jsperf.app/qikobi
+      - Need to stress test this perf test but using it for now.
+
+# 2023-08-23
 - Wondering about the number of draw calls since repeated shapes can't be instanced since instancing is already being used for the hex line itself.
   - Internet suggests 100s-1000 draw calls are okay.
   - Shouldn't be more than 100s of draw calls in the extreme case here. Should be alright.
