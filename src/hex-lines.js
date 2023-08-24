@@ -1,16 +1,25 @@
 export class HexLinesContext {
   constructor({canvas, pixelSize}) {
     this.canvas = canvas;
-    this.gl = this.canvas.getContext('webgl2');
+    this.pixelSize = pixelSize;
+
+    this.canvas.width /= this.pixelSize;
+    this.canvas.height /= this.pixelSize;
+    this.canvas.style = `
+      transform: scale(${this.pixelSize});
+      transform-origin: top left;
+      image-rendering: pixelated;
+    `;
+    this.gl = this.canvas.getContext('webgl2', {antialias: false});
 
     const vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
     this.gl.shaderSource(vertexShader, `#version 300 es
       precision mediump float;
 
-      // uniform float width;
-      // uniform float height;
-      // uniform float pixelSize;
-      // uniform vec3 transform;
+      uniform float width;
+      uniform float height;
+      uniform float pixelSize;
+      // uniform mat3 transform;
 
       in vec2 startPosition;
       in float startSize;
@@ -23,53 +32,49 @@ export class HexLinesContext {
       out vec4 vertexColour;
 
       struct HexLineVertex {
-        vec2 start;
-        vec2 end;
+        vec2 offset;
         float progress;
       };
 
-      const HexLineVertex kHexLineVertices[] = HexLineVertex[30](
-        // Start hex.
-        HexLineVertex(vec2(sqrt(3.) / 4., 0.25), vec2(0, 0), 0.),
-        HexLineVertex(vec2(0, 0.5), vec2(0, 0), 0.),
-        HexLineVertex(vec2(-sqrt(3.) / 4., 0.25), vec2(0, 0), 0.),
-        HexLineVertex(vec2(-sqrt(3.) / 4., 0.25), vec2(0, 0), 0.),
-        HexLineVertex(vec2(sqrt(3.) / 4., -0.25), vec2(0, 0), 0.),
-        HexLineVertex(vec2(sqrt(3.) / 4., 0.25), vec2(0, 0), 0.),
-        HexLineVertex(vec2(-sqrt(3.) / 4., 0.25), vec2(0, 0), 0.),
-        HexLineVertex(vec2(-sqrt(3.) / 4., -0.25), vec2(0, 0), 0.),
-        HexLineVertex(vec2(sqrt(3.) / 4., -0.25), vec2(0, 0), .0),
-        HexLineVertex(vec2(sqrt(3.) / 4., -0.25), vec2(0, 0), 0.),
-        HexLineVertex(vec2(-sqrt(3.) / 4., -0.25), vec2(0, 0), 0.),
-        HexLineVertex(vec2(0, -0.5), vec2(0, 0), 0.),
+      const HexLineVertex kHexLineVertices[] = HexLineVertex[18](
+        // Start hemihex.
+        HexLineVertex(vec2(0, 0.5), 0.),
+        HexLineVertex(vec2(0, -0.5), 0.),
+        HexLineVertex(vec2(-sqrt(3.) / 4., -0.25), 0.),
+        HexLineVertex(vec2(0, 0.5), 0.),
+        HexLineVertex(vec2(-sqrt(3.) / 4., -0.25), 0.),
+        HexLineVertex(vec2(-sqrt(3.) / 4., 0.25), 0.),
 
         // Bridge
-        HexLineVertex(vec2(0, -0.5), vec2(0, 0), 0.),
-        HexLineVertex(vec2(0, 0.5), vec2(0, 0), 0.),
-        HexLineVertex(vec2(0, 0), vec2(0, 0.5), 1.),
-        HexLineVertex(vec2(0, -0.5), vec2(0, 0), 0.),
-        HexLineVertex(vec2(0, 0), vec2(0, 0.5), 1.),
-        HexLineVertex(vec2(0, 0), vec2(0, -0.5), 1.),
+        HexLineVertex(vec2(0, -0.5), 0.),
+        HexLineVertex(vec2(0, 0.5), 0.),
+        HexLineVertex(vec2(0, 0.5), 1.),
+        HexLineVertex(vec2(0, -0.5), 0.),
+        HexLineVertex(vec2(0, 0.5), 1.),
+        HexLineVertex(vec2(0, -0.5), 1.),
 
-        // End hex.
-        HexLineVertex(vec2(0, 0), vec2(sqrt(3.) / 4., 0.25), 1.),
-        HexLineVertex(vec2(0, 0), vec2(0, 0.5), 1.),
-        HexLineVertex(vec2(0, 0), vec2(-sqrt(3.) / 4., 0.25), 1.),
-        HexLineVertex(vec2(0, 0), vec2(-sqrt(3.) / 4., 0.25), 1.),
-        HexLineVertex(vec2(0, 0), vec2(sqrt(3.) / 4., -0.25), 1.),
-        HexLineVertex(vec2(0, 0), vec2(sqrt(3.) / 4., 0.25), 1.),
-        HexLineVertex(vec2(0, 0), vec2(-sqrt(3.) / 4., 0.25), 1.),
-        HexLineVertex(vec2(0, 0), vec2(-sqrt(3.) / 4., -0.25), 1.),
-        HexLineVertex(vec2(0, 0), vec2(sqrt(3.) / 4., -0.25), 1.),
-        HexLineVertex(vec2(0, 0), vec2(sqrt(3.) / 4., -0.25), 1.),
-        HexLineVertex(vec2(0, 0), vec2(-sqrt(3.) / 4., -0.25), 1.),
-        HexLineVertex(vec2(0, 0), vec2(0, -0.5), 1.)
+        // End hemihex.
+        HexLineVertex(vec2(0, 0.5), 1.),
+        HexLineVertex(vec2(sqrt(3.) / 4., -0.25), 1.),
+        HexLineVertex(vec2(0, -0.5), 1.),
+        HexLineVertex(vec2(0, 0.5), 1.),
+        HexLineVertex(vec2(sqrt(3.) / 4., 0.25), 1.),
+        HexLineVertex(vec2(sqrt(3.) / 4., -0.25), 1.)
       );
 
-      vec2 rotate(vec2 v, vec2 rotation) {
+      vec2 rotate(vec2 v, vec2 angle) {
+        // v = ax + by
+        // angle = cx + dy
+        // bivector = x * angle
+        //   = cxx + dxy
+        //   = c + dxy
+        // v * bivector = (ax + by) * (c + dxy)
+        //   = acx + adxxy + bcy + bdyxy
+        //   = acx + ady + bcy - bdx
+        //   = (ac - bd)x + (ad + bc)y
         return vec2(
-          v.x * rotation.x - v.y * rotation.y,
-          v.x * rotation.y + v.y * rotation.x);
+          v.x * angle.x - v.y * angle.y,
+          v.x * angle.y + v.y * angle.x);
       }
 
       vec4 rgbaToColour(uint rgba) {
@@ -80,16 +85,25 @@ export class HexLinesContext {
           float((rgba >> (0 * 8)) & 0xffu) / 255.);
       }
 
-      void main() {
-        vec2 rotation = normalize(endPosition - startPosition);
-        HexLineVertex hexLineVertex = kHexLineVertices[gl_VertexID];
-        gl_Position = vec4(
-          mix(
-            startPosition + rotate(hexLineVertex.start, rotation) * startSize,
-            endPosition + rotate(hexLineVertex.end, rotation) * endSize,
-            hexLineVertex.progress),
-          0, 1);
+      vec2 screenToClip(vec2 v) {
+        v /= vec2(width, height);
+        v *= 2.;
+        v -= vec2(1, 1);
+        return vec2(v.x, -v.y);
+      }
 
+      void main() {
+        vec2 angle = endPosition == startPosition ? vec2(0, 1) : normalize(endPosition - startPosition);
+        HexLineVertex hexLineVertex = kHexLineVertices[gl_VertexID];
+        vec2 screenPosition =
+          (
+            mix(startPosition, endPosition, hexLineVertex.progress) +
+            rotate(hexLineVertex.offset, angle) *
+            mix(startSize, endSize, hexLineVertex.progress)
+          ) / pixelSize;
+        bool enabled = startSize > 0. && endSize > 0.;
+
+        gl_Position = vec4(float(enabled) * screenToClip(screenPosition), 0, 1);
         vertexColour = mix(rgbaToColour(startRGBA), rgbaToColour(endRGBA), hexLineVertex.progress);
       }
     `);
@@ -117,6 +131,19 @@ export class HexLinesContext {
     logIf(this.gl.getProgramInfoLog(program));
     this.gl.useProgram(program);
 
+    this.gl.enable(this.gl.BLEND);
+    this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+
+    this.uniformLocations = Object.fromEntries([
+      'width',
+      'height',
+      'pixelSize',
+      'transform',
+    ].map(name => [name, this.gl.getUniformLocation(program, name)]));
+    this.gl.uniform1f(this.uniformLocations.width, this.canvas.width);
+    this.gl.uniform1f(this.uniformLocations.height, this.canvas.height);
+    this.gl.uniform1f(this.uniformLocations.pixelSize, this.pixelSize);
+
     this.attributeLocations = Object.fromEntries([
       'startPosition',
       'startSize',
@@ -125,15 +152,6 @@ export class HexLinesContext {
       'endSize',
       'endRGBA',
     ].map(name => [name, this.gl.getAttribLocation(program, name)]));
-    this.uniformLocations = Object.fromEntries([
-      'width',
-      'height',
-      'pixelSize',
-      'transform',
-    ].map(name => [name, this.gl.getUniformLocation(program, name)]));
-
-    this.gl.enable(this.gl.BLEND);
-    this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
   }
 
   // [ x, y, size, rgba, ... ]
@@ -193,7 +211,7 @@ class HexLinesHandle {
   draw() {
     this.gl.bindVertexArray(this.vertexArray);
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
-    this.gl.drawArraysInstanced(this.gl.TRIANGLES, 0, 30, this.length - 1);
+    this.gl.drawArraysInstanced(this.gl.TRIANGLES, 0, 18, this.length - 1);
   }
 
   remove() {

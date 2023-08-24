@@ -6,6 +6,23 @@
     - Weirdly found that object parameter destructuring had better performance than flat parameters??
       - https://jsperf.app/qikobi
       - Need to stress test this perf test but using it for now.
+- Reduced vertex count.
+  - Only half a hex is required per side now that they're rotated to be aligned with the line.
+  - The term hemihex doesn't seem to exist on the internet.
+- Changed the enabled logic to discard when either the start or end are size 0.
+  - Means dots need two points to be rendered but that's fine.
+  - The rendering of hemihexes makes this more okay since two points are needed anyway to make one hex.
+- Used bivector logic instead of complex numbers to represent 2D rotation.
+  - Was more arithmetic to come to the same result but doesn't use magic ii = -1, instead uses xx = 1 and xy = -yx.
+- Added width and height support, input values are now in screen co-ordinates.
+- Added pixelSize support, screen co-ordinates are still preserved.
+  - Currently pixelSize is applied to the entire canvas, maybe this should be a per draw call decision making use of rendering to an intermediate texture to do the upscaling.
+    - Performance cost of this is questionable compared to the current design since line drawing and texture drawing calls will be interleaved.
+- Seems to work, what next?
+  - Maybe refactor the bomber experiment to use this.
+  - Hopefully get much higher performance.
+  - See how this is to use.
+  - It could probably use just one draw call.
 
 # 2023-08-23
 - Wondering about the number of draw calls since repeated shapes can't be instanced since instancing is already being used for the hex line itself.
