@@ -1,3 +1,31 @@
+export const kBytesPerHexPoint = 4 * 4;
+
+const kLittleEndian = new DataView(new Uint16Array([1]).buffer).getUint8(0, true);
+
+export function setHexPoint(dataView, i, hexPoint) {
+  if (hexPoint === null) {
+    dataView.setFloat32(i * kBytesPerHexPoint + 8, 0, kLittleEndian);
+    return;
+  }
+  const {position: {x, y}, size, colour} = hexPoint;
+  dataView.setFloat32(i * kBytesPerHexPoint + 0, x, kLittleEndian);
+  dataView.setFloat32(i * kBytesPerHexPoint + 4, y, kLittleEndian);
+  dataView.setFloat32(i * kBytesPerHexPoint + 8, size, kLittleEndian);
+  dataView.setUint32(i * kBytesPerHexPoint + 12, rgbaToUint32(colour), kLittleEndian);
+}
+
+export function setHexPoints(dataView, hexPoints) {
+  for (let i = 0; i < hexPoints.length; ++i) {
+    setHexPoint(dataView, i, hexPoints[i]);
+  }
+}
+
+export function hexPointsToArrayBuffer(hexPoints) {
+  const buffer = new ArrayBuffer(hexPoints.length * kBytesPerHexPoint);
+  setHexPoints(new DataView(buffer), hexPoints);
+  return buffer;
+}
+
 export class HexLinesContext {
   constructor({canvas, pixelSize=1, antialias=true}) {
     this.canvas = canvas;
@@ -160,8 +188,6 @@ export class HexLinesContext {
   }
 }
 
-const kBytesPerHexPoint = 4 * 4;
-
 class HexLinesHandle {
   constructor(hexLinesContext, bufferData) {
     this.hexLinesContext = hexLinesContext;
@@ -219,15 +245,11 @@ class HexLinesHandle {
   }
 }
 
-const sharedArrayBuffer = new ArrayBuffer(4);
-const sharedDataView = new DataView(sharedArrayBuffer);
-export function rgbaToFloat32({r, g, b, a}) {
-  sharedDataView.setUint32(0,
-    ((r & 0xff) << (3 * 8)) |
+function rgbaToUint32({r, g, b, a}) {
+  return ((r & 0xff) << (3 * 8)) |
     ((g & 0xff) << (2 * 8)) |
     ((b & 0xff) << (1 * 8)) |
-    ((a & 0xff) << (0 * 8)));
-  return sharedDataView.getFloat32(0);
+    ((a & 0xff) << (0 * 8));
 }
 
 function logIf(text) {

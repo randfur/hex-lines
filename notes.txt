@@ -1,4 +1,16 @@
-# 2023-08-23
+# 2023-08-25
+- Fixed Firefox by using a DataView to write the colour as a u32 directly instead of having it pass through f32 format.
+  - Added setHexPoint() and setHexPoints() helper functions to operate on a DataView.
+  - Created a point object format to pass in to these or pass in null for empty points.
+    - Concerned about performance impact of this object, will probably add a non-object version later.
+  - Added hexPointsToArrayBuffer() as convenience helper.
+- 2D/3D support
+  - There should probably be 2D and 3D versions of this library; hex-lines-2d and hex-lines-3d.
+  - For 3D uses like bomber-hex-lines it isn't efficient to do depth sorting and camera transforms on the CPU
+  - According to the performance tab in DevTools most of the time is spent on depth sorting.
+  - With depth culling depth sorting can be eliminated entirely (at the loss of alpha channel ease of use).
+
+# 2023-08-24
 - Added colour support.
   - Using GL blend modes to support alpha.
   - this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA) does an interpolation from destination pixel to source pixel using the source's alpha.
@@ -39,6 +51,10 @@
   - Canvas width, height.
   - Scaling position and size by pixelSize.
   - Adding transform matrix uniform.
+- On Firefox white and yellow appear as alpha 0.
+  - Turns out those colours when put through the rgbaToFloat32() conversion come out as NaN.
+  - Seems like Chrome is passing the exact NaN value through while Firefox is canonicalising it to some other value.
+  - Maybe passing all the data via a Float32Array isn't the way to go and instead use a DataView to construct the buffer, this should avoid the issue entirely.
 
 # 2023-08-22
 - Library version of [hex-lines-webgl](https://github.com/randfur/experiments/tree/main/2023/hex-lines-webgl).
