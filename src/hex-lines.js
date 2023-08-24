@@ -1,5 +1,5 @@
 export class HexLinesContext {
-  constructor({canvas, pixelSize}) {
+  constructor({canvas, pixelSize=1, antialias=true}) {
     this.canvas = canvas;
     this.pixelSize = pixelSize;
 
@@ -10,7 +10,7 @@ export class HexLinesContext {
       transform-origin: top left;
       image-rendering: pixelated;
     `;
-    this.gl = this.canvas.getContext('webgl2', {antialias: false});
+    this.gl = this.canvas.getContext('webgl2', {antialias});
 
     const vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
     this.gl.shaderSource(vertexShader, `#version 300 es
