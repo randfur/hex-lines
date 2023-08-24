@@ -1,7 +1,6 @@
 export const kBytesPerHexPoint = 4 * 4;
 
 const kLittleEndian = new DataView(new Uint16Array([1]).buffer).getUint8(0, true);
-
 export function setHexPoint(dataView, i, hexPoint) {
   if (hexPoint === null) {
     dataView.setFloat32(i * kBytesPerHexPoint + 8, 0, kLittleEndian);
