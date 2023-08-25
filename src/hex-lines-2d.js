@@ -113,15 +113,8 @@ export class HexLinesContext2d {
           float((rgba >> (0 * 8)) & 0xffu) / 255.);
       }
 
-      vec2 screenToClip(vec2 v) {
-        v /= vec2(width, height);
-        v *= 2.;
-        v -= vec2(1, 1);
-        return vec2(v.x, -v.y);
-      }
-
       void main() {
-        vec2 angle = endPosition == startPosition ? vec2(0, 1) : normalize(endPosition - startPosition);
+        vec2 angle = endPosition == startPosition ? vec2(cos(float(gl_InstanceID)), sin(float(gl_InstanceID))) : normalize(endPosition - startPosition);
         HexLineVertex hexLineVertex = kHexLineVertices[gl_VertexID];
         vec2 screenPosition =
           (
@@ -131,7 +124,10 @@ export class HexLinesContext2d {
           ) / pixelSize;
         bool enabled = startSize > 0. && endSize > 0.;
 
-        gl_Position = vec4(float(enabled) * screenToClip(screenPosition), 0, 1);
+        gl_Position = vec4(
+          float(enabled) * screenPosition / vec2(width / 2., height / 2.),
+          0,
+          1);
         vertexColour = mix(rgbaToColour(startRGBA), rgbaToColour(endRGBA), hexLineVertex.progress);
       }
     `);

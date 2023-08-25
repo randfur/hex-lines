@@ -15,17 +15,21 @@
 - Origin
   - Want to move 0,0 to be in the centre of the canvas instead of top left.
   - Not totally sure it's a good idea to break from convention but my use cases seem like they'll benefit from it.
+  - While I'm at it I may as well have y flipped to match OpenGL.
   - All these quirks of rendering will need good documentation.
     - 0,0 in centre.
+    - x goes right, y goes up.
     - Bounds are -width/2,-height/2 to width/2,height/2.
     - Perspective controlled by a zDiv parameter.
     - Camera transform must not have perspective in it.
     - All lines need to be terminated by a size 0 hex point including the last one.
     - Drawing a dot requires two hex points in the same location.
+  - Done.
 - Dots
   - Considering having the dot orientation depend on gl_instanceID.
   - Give it a bit of randomness.
   - Can just cos,sin some function on instance ID.
+  - Done.
 
 # 2023-08-25
 - Fixed Firefox by using a DataView to write the colour as a u32 directly instead of having it pass through f32 format.
