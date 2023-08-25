@@ -1,4 +1,4 @@
-import {HexLinesContext, hexPointsToArrayBuffer} from '../src/hex-lines.js';
+import {HexLinesContext2d, hexPoints2dToArrayBuffer} from '../src/hex-lines-2d.js';
 
 function main() {
   const canvas = document.createElement('canvas');
@@ -6,10 +6,10 @@ function main() {
   canvas.height = window.innerHeight;
   document.body.append(canvas);
 
-  const hexContext = new HexLinesContext({
+  const hexContext = new HexLinesContext2d({
     canvas,
     pixelSize: 4,
-  }).add(hexPointsToArrayBuffer([
+  }).add(hexPoints2dToArrayBuffer([
     {position: {x: 200, y: 200}, size: 20, colour: {r: 255, g: 0, b: 0, a: 255}},
     {position: {x: 500, y: 440}, size: 20, colour: {r: 255, g: 255, b: 0, a: 255}},
     {position: {x: 600, y: 300}, size: 20, colour: {r: 0, g: 255, b: 0, a: 255}},

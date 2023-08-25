@@ -1,3 +1,32 @@
+# 2023-08-26
+- 2D/3D
+  - Renaming existing code to be 2D.
+  - Files are xyz-2d.js, functions are xyz2d().
+  - Added utils.js file for sharing stuff.
+    - Should probably share a lot of the shader code.
+    - 3D shader can probably build on top of the 2D shader.
+    - Can turn the 2D stuff into a helper function they both call into with start and end positions.
+  - 3D rendering.
+    - Will not use actual 3D rendering for now (as in setting w to non-one values).
+    - Will do z div in shader just like the bomber experiment does.
+    - May change this later, will probably be hard to interop with other 3D rendering that uses traditional perspective matrix transforms.
+    - Will see where it becomes a problem and fix then.
+    - Need to apply non-perspective camera transforms separate to perspective transforms to draw the line thickness, can't have the HexVertex offsets getting transformed by the camera orientation, they must be in the final xy plane.
+- Origin
+  - Want to move 0,0 to be in the centre of the canvas instead of top left.
+  - Not totally sure it's a good idea to break from convention but my use cases seem like they'll benefit from it.
+  - All these quirks of rendering will need good documentation.
+    - 0,0 in centre.
+    - Bounds are -width/2,-height/2 to width/2,height/2.
+    - Perspective controlled by a zDiv parameter.
+    - Camera transform must not have perspective in it.
+    - All lines need to be terminated by a size 0 hex point including the last one.
+    - Drawing a dot requires two hex points in the same location.
+- Dots
+  - Considering having the dot orientation depend on gl_instanceID.
+  - Give it a bit of randomness.
+  - Can just cos,sin some function on instance ID.
+
 # 2023-08-25
 - Fixed Firefox by using a DataView to write the colour as a u32 directly instead of having it pass through f32 format.
   - Added setHexPoint() and setHexPoints() helper functions to operate on a DataView.
