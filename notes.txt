@@ -12,6 +12,11 @@
     - May change this later, will probably be hard to interop with other 3D rendering that uses traditional perspective matrix transforms.
     - Will see where it becomes a problem and fix then.
     - Need to apply non-perspective camera transforms separate to perspective transforms to draw the line thickness, can't have the HexVertex offsets getting transformed by the camera orientation, they must be in the final xy plane.
+  - How to deal with min and max Z?
+    - Clip co-ordinates need to be between -1 and 1.
+    - Caller will need to specify camera transform, minZ, maxZ and zDiv.
+    - These should be able to turn the 3D points into 2D points to feed into the 2D code.
+    - Will need to do near and far clipping manually.
 - Origin
   - Want to move 0,0 to be in the centre of the canvas instead of top left.
   - Not totally sure it's a good idea to break from convention but my use cases seem like they'll benefit from it.

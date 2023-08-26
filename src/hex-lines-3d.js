@@ -1,32 +1,33 @@
 import {kLittleEndian, rgbaToUint32, logIf} from './utils.js';
 
-export const kBytesPerHexPoint2d = 4 * 4;
+export const kBytesPerHexPoint3d = 5 * 4;
 
-export function setHexPoint2d(dataView, i, hexPoint2d) {
-  if (hexPoint2d === null) {
-    dataView.setFloat32(i * kBytesPerHexPoint2d + 8, 0, kLittleEndian);
+export function setHexPoint3d(dataView, i, hexPoint3d) {
+  if (hexPoint3d === null) {
+    dataView.setFloat32(i * kBytesPerHexPoint3d + 8, 0, kLittleEndian);
     return;
   }
-  const {position: {x, y}, size, colour} = hexPoint2d;
-  dataView.setFloat32(i * kBytesPerHexPoint2d + 0, x, kLittleEndian);
-  dataView.setFloat32(i * kBytesPerHexPoint2d + 4, y, kLittleEndian);
-  dataView.setFloat32(i * kBytesPerHexPoint2d + 8, size, kLittleEndian);
-  dataView.setUint32(i * kBytesPerHexPoint2d + 12, rgbaToUint32(colour), kLittleEndian);
+  const {position: {x, y, z}, size, colour} = hexPoint3d;
+  dataView.setFloat32(i * kBytesPerHexPoint3d + 0, x, kLittleEndian);
+  dataView.setFloat32(i * kBytesPerHexPoint3d + 4, y, kLittleEndian);
+  dataView.setFloat32(i * kBytesPerHexPoint3d + 8, z, kLittleEndian);
+  dataView.setFloat32(i * kBytesPerHexPoint3d + 12, size, kLittleEndian);
+  dataView.setUint32(i * kBytesPerHexPoint3d + 16, rgbaToUint32(colour), kLittleEndian);
 }
 
-export function setHexPoints2d(dataView, hexPoints2d) {
-  for (let i = 0; i < hexPoints2d.length; ++i) {
-    setHexPoint2d(dataView, i, hexPoints2d[i]);
+export function setHexPoints3d(dataView, hexPoints3d) {
+  for (let i = 0; i < hexPoints3d.length; ++i) {
+    setHexPoint3d(dataView, i, hexPoints3d[i]);
   }
 }
 
-export function hexPoints2dToArrayBuffer(hexPoints2d) {
-  const buffer = new ArrayBuffer(hexPoints2d.length * kBytesPerHexPoint2d);
-  setHexPoints2d(new DataView(buffer), hexPoints2d);
+export function hexPoints3dToArrayBuffer(hexPoints3d) {
+  const buffer = new ArrayBuffer(hexPoints3d.length * kBytesPerHexPoint3d);
+  setHexPoints3d(new DataView(buffer), hexPoints3d);
   return buffer;
 }
 
-export class HexLinesContext2d {
+export class HexLinesContext3d {
   constructor({canvas, pixelSize=1, antialias=true}) {
     this.canvas = canvas;
     this.pixelSize = pixelSize;
@@ -48,12 +49,14 @@ export class HexLinesContext2d {
       uniform float height;
       uniform float pixelSize;
       // uniform mat3 transform;
+      uniform mat4 cameraTransform;
+      uniform float cameraPerspective;
 
-      in vec2 startPosition;
+      in vec3 startPosition;
       in float startSize;
       in uint startRGBA;
 
-      in vec2 endPosition;
+      in vec3 endPosition;
       in float endSize;
       in uint endRGBA;
 
@@ -114,6 +117,9 @@ export class HexLinesContext2d {
       }
 
       void main() {
+        vec3 transformedStartPosition = startPosition * cameraTransform;
+        vec3 transformedEndPosition = endPosition * cameraTransform;
+
         vec2 angle = endPosition == startPosition ? vec2(cos(float(gl_InstanceID)), sin(float(gl_InstanceID))) : normalize(endPosition - startPosition);
         HexLineVertex hexLineVertex = kHexLineVertices[gl_VertexID];
         vec2 screenPosition =
@@ -180,11 +186,11 @@ export class HexLinesContext2d {
 
   // [ x, y, size, rgba, ... ]
   add(bufferData) {
-    return new HexLinesHandle2d(this, bufferData);
+    return new HexLinesHandle3d(this, bufferData);
   }
 }
 
-class HexLinesHandle2d {
+class HexLinesHandle3d {
   constructor(hexLinesContext, bufferData) {
     this.hexLinesContext = hexLinesContext;
     this.gl = this.hexLinesContext.gl;
@@ -209,12 +215,12 @@ class HexLinesHandle2d {
     this.gl.enableVertexAttribArray(endSize);
     this.gl.enableVertexAttribArray(endRGBA);
 
-    this.gl.vertexAttribPointer(startPosition, 2, this.gl.FLOAT, this.gl.FALSE, kBytesPerHexPoint2d, 0);
-    this.gl.vertexAttribPointer(startSize, 1, this.gl.FLOAT, this.gl.FALSE, kBytesPerHexPoint2d, 2 * 4);
-    this.gl.vertexAttribIPointer(startRGBA, 1, this.gl.UNSIGNED_INT, kBytesPerHexPoint2d, 3 * 4);
-    this.gl.vertexAttribPointer(endPosition, 2, this.gl.FLOAT, this.gl.FALSE, kBytesPerHexPoint2d, kBytesPerHexPoint2d + 0);
-    this.gl.vertexAttribPointer(endSize, 1, this.gl.FLOAT, this.gl.FALSE, kBytesPerHexPoint2d, kBytesPerHexPoint2d + 2 * 4);
-    this.gl.vertexAttribIPointer(endRGBA, 1, this.gl.UNSIGNED_INT, kBytesPerHexPoint2d, kBytesPerHexPoint2d + 3 * 4);
+    this.gl.vertexAttribPointer(startPosition, 2, this.gl.FLOAT, this.gl.FALSE, kBytesPerHexPoint3d, 0);
+    this.gl.vertexAttribPointer(startSize, 1, this.gl.FLOAT, this.gl.FALSE, kBytesPerHexPoint3d, 2 * 4);
+    this.gl.vertexAttribIPointer(startRGBA, 1, this.gl.UNSIGNED_INT, kBytesPerHexPoint3d, 3 * 4);
+    this.gl.vertexAttribPointer(endPosition, 2, this.gl.FLOAT, this.gl.FALSE, kBytesPerHexPoint3d, kBytesPerHexPoint3d + 0);
+    this.gl.vertexAttribPointer(endSize, 1, this.gl.FLOAT, this.gl.FALSE, kBytesPerHexPoint3d, kBytesPerHexPoint3d + 2 * 4);
+    this.gl.vertexAttribIPointer(endRGBA, 1, this.gl.UNSIGNED_INT, kBytesPerHexPoint3d, kBytesPerHexPoint3d + 3 * 4);
 
     this.gl.vertexAttribDivisor(startPosition, 1);
     this.gl.vertexAttribDivisor(startSize, 1);
@@ -225,7 +231,7 @@ class HexLinesHandle2d {
   }
 
   update(bufferData) {
-    this.length = bufferData.byteLength / kBytesPerHexPoint2d;
+    this.length = bufferData.byteLength / kBytesPerHexPoint3d;
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, bufferData, this.gl.DYNAMIC_DRAW);
   }
