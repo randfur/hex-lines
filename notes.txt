@@ -1,3 +1,17 @@
+#2023-08-27
+- 3D
+  - Vertex shader needs to do a few things for 3D
+    - Apply camera transform.
+    - Clip zNear.
+    - Apply zDiv to get 2D points.
+    - Invoke regular 2D flow.
+  - Will create a struct to hold the data as it goes through this pipeline of transforms, easier to write functions for each stage.
+  - Moved shader into vertex-shader.js and created a builder function to generate the shader for 2D and 3D.
+    - `` ${} string interpolation being used as preprocessing.
+    - Basically #ifdef.
+  - A bit unfortunate these transformations need to happen per vertex rather than per point but should be fine, still orders of magnitude than doing it linearly on the CPU.
+    - This could probably be done better with WebGPU with effectively a geometry shader to generate all the hex line vertices from one 3D transform application.
+
 # 2023-08-26
 - 2D/3D
   - Renaming existing code to be 2D.
