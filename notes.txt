@@ -27,6 +27,11 @@
       - This is tricky because the hex shape needs to be aligned with the screen.
       - Maybe the w can be faked and the x,y values pre-multiplied by w.
       - Gonna try that for a while first.
+      - Updated zDiv to be used in w only but layering still wrong.
+      - Also lines go funny when they're going towards the camera.
+        - Hex angle calculation probably wrong now, needs to be post zDiv.
+    - Reverting back to not using w to fix glitch on lines aiming at camera.
+    - Should probably figure out billboarding instead.
 
 # 2023-08-26
 - 2D/3D
