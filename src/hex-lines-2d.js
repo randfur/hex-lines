@@ -1,4 +1,5 @@
 import {kLittleEndian, rgbaToUint32, logIf} from './utils.js';
+import {buildVertexShader, kFragmentShader} from './shaders.js';
 
 export const kBytesPerHexPoint2d = 4 * 4;
 
@@ -41,110 +42,12 @@ export class HexLinesContext2d {
     this.gl = this.canvas.getContext('webgl2', {antialias});
 
     const vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
-    this.gl.shaderSource(vertexShader, `#version 300 es
-      precision mediump float;
-
-      uniform float width;
-      uniform float height;
-      uniform float pixelSize;
-      // uniform mat3 transform;
-
-      in vec2 startPosition;
-      in float startSize;
-      in uint startRGBA;
-
-      in vec2 endPosition;
-      in float endSize;
-      in uint endRGBA;
-
-      out vec4 vertexColour;
-
-      struct HexLineVertex {
-        vec2 offset;
-        float progress;
-      };
-
-      const HexLineVertex kHexLineVertices[] = HexLineVertex[18](
-        // Start hemihex.
-        HexLineVertex(vec2(0, 0.5), 0.),
-        HexLineVertex(vec2(0, -0.5), 0.),
-        HexLineVertex(vec2(-sqrt(3.) / 4., -0.25), 0.),
-        HexLineVertex(vec2(0, 0.5), 0.),
-        HexLineVertex(vec2(-sqrt(3.) / 4., -0.25), 0.),
-        HexLineVertex(vec2(-sqrt(3.) / 4., 0.25), 0.),
-
-        // Bridge
-        HexLineVertex(vec2(0, -0.5), 0.),
-        HexLineVertex(vec2(0, 0.5), 0.),
-        HexLineVertex(vec2(0, 0.5), 1.),
-        HexLineVertex(vec2(0, -0.5), 0.),
-        HexLineVertex(vec2(0, 0.5), 1.),
-        HexLineVertex(vec2(0, -0.5), 1.),
-
-        // End hemihex.
-        HexLineVertex(vec2(0, 0.5), 1.),
-        HexLineVertex(vec2(sqrt(3.) / 4., -0.25), 1.),
-        HexLineVertex(vec2(0, -0.5), 1.),
-        HexLineVertex(vec2(0, 0.5), 1.),
-        HexLineVertex(vec2(sqrt(3.) / 4., 0.25), 1.),
-        HexLineVertex(vec2(sqrt(3.) / 4., -0.25), 1.)
-      );
-
-      vec2 rotate(vec2 v, vec2 angle) {
-        // v = ax + by
-        // angle = cx + dy
-        // bivector = x * angle
-        //   = cxx + dxy
-        //   = c + dxy
-        // v * bivector = (ax + by) * (c + dxy)
-        //   = acx + adxxy + bcy + bdyxy
-        //   = acx + ady + bcy - bdx
-        //   = (ac - bd)x + (ad + bc)y
-        return vec2(
-          v.x * angle.x - v.y * angle.y,
-          v.x * angle.y + v.y * angle.x);
-      }
-
-      vec4 rgbaToColour(uint rgba) {
-        return vec4(
-          float((rgba >> (3 * 8)) & 0xffu) / 255.,
-          float((rgba >> (2 * 8)) & 0xffu) / 255.,
-          float((rgba >> (1 * 8)) & 0xffu) / 255.,
-          float((rgba >> (0 * 8)) & 0xffu) / 255.);
-      }
-
-      void main() {
-        vec2 angle = endPosition == startPosition ? vec2(cos(float(gl_InstanceID)), sin(float(gl_InstanceID))) : normalize(endPosition - startPosition);
-        HexLineVertex hexLineVertex = kHexLineVertices[gl_VertexID];
-        vec2 screenPosition =
-          (
-            mix(startPosition, endPosition, hexLineVertex.progress) +
-            rotate(hexLineVertex.offset, angle) *
-            mix(startSize, endSize, hexLineVertex.progress)
-          ) / pixelSize;
-        bool enabled = startSize > 0. && endSize > 0.;
-
-        gl_Position = vec4(
-          float(enabled) * screenPosition / vec2(width / 2., height / 2.),
-          0,
-          1);
-        vertexColour = mix(rgbaToColour(startRGBA), rgbaToColour(endRGBA), hexLineVertex.progress);
-      }
-    `);
+    this.gl.shaderSource(vertexShader, buildVertexShader({is3d: false}));
     this.gl.compileShader(vertexShader);
     logIf(this.gl.getShaderInfoLog(vertexShader));
 
     const fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
-    this.gl.shaderSource(fragmentShader, `#version 300 es
-      precision mediump float;
-
-      in vec4 vertexColour;
-      out vec4 fragmentColour;
-
-      void main() {
-        fragmentColour = vertexColour;
-      }
-    `);
+    this.gl.shaderSource(fragmentShader, kFragmentShader);
     this.gl.compileShader(fragmentShader);
     logIf(this.gl.getShaderInfoLog(fragmentShader));
 
@@ -167,14 +70,19 @@ export class HexLinesContext2d {
     this.gl.uniform1f(this.uniformLocations.width, this.canvas.width);
     this.gl.uniform1f(this.uniformLocations.height, this.canvas.height);
     this.gl.uniform1f(this.uniformLocations.pixelSize, this.pixelSize);
+    this.gl.uniformMatrix3fv(this.uniformLocations.transform, this.gl.false, new Float32Array([
+      1, 0, 0,
+      0, 1, 0,
+      0, 0, 1,
+    ]));
 
     this.attributeLocations = Object.fromEntries([
       'startPosition',
       'startSize',
-      'startRGBA',
+      'startRgba',
       'endPosition',
       'endSize',
-      'endRGBA',
+      'endRgba',
     ].map(name => [name, this.gl.getAttribLocation(program, name)]));
   }
 
@@ -197,31 +105,31 @@ class HexLinesHandle2d {
     const {
       startPosition,
       startSize,
-      startRGBA,
+      startRgba,
       endPosition,
       endSize,
-      endRGBA,
+      endRgba,
     } = this.hexLinesContext.attributeLocations;
     this.gl.enableVertexAttribArray(startPosition);
     this.gl.enableVertexAttribArray(startSize);
-    this.gl.enableVertexAttribArray(startRGBA);
+    this.gl.enableVertexAttribArray(startRgba);
     this.gl.enableVertexAttribArray(endPosition);
     this.gl.enableVertexAttribArray(endSize);
-    this.gl.enableVertexAttribArray(endRGBA);
+    this.gl.enableVertexAttribArray(endRgba);
 
     this.gl.vertexAttribPointer(startPosition, 2, this.gl.FLOAT, this.gl.FALSE, kBytesPerHexPoint2d, 0);
     this.gl.vertexAttribPointer(startSize, 1, this.gl.FLOAT, this.gl.FALSE, kBytesPerHexPoint2d, 2 * 4);
-    this.gl.vertexAttribIPointer(startRGBA, 1, this.gl.UNSIGNED_INT, kBytesPerHexPoint2d, 3 * 4);
+    this.gl.vertexAttribIPointer(startRgba, 1, this.gl.UNSIGNED_INT, kBytesPerHexPoint2d, 3 * 4);
     this.gl.vertexAttribPointer(endPosition, 2, this.gl.FLOAT, this.gl.FALSE, kBytesPerHexPoint2d, kBytesPerHexPoint2d + 0);
     this.gl.vertexAttribPointer(endSize, 1, this.gl.FLOAT, this.gl.FALSE, kBytesPerHexPoint2d, kBytesPerHexPoint2d + 2 * 4);
-    this.gl.vertexAttribIPointer(endRGBA, 1, this.gl.UNSIGNED_INT, kBytesPerHexPoint2d, kBytesPerHexPoint2d + 3 * 4);
+    this.gl.vertexAttribIPointer(endRgba, 1, this.gl.UNSIGNED_INT, kBytesPerHexPoint2d, kBytesPerHexPoint2d + 3 * 4);
 
     this.gl.vertexAttribDivisor(startPosition, 1);
     this.gl.vertexAttribDivisor(startSize, 1);
-    this.gl.vertexAttribDivisor(startRGBA, 1);
+    this.gl.vertexAttribDivisor(startRgba, 1);
     this.gl.vertexAttribDivisor(endPosition, 1);
     this.gl.vertexAttribDivisor(endSize, 1);
-    this.gl.vertexAttribDivisor(endRGBA, 1);
+    this.gl.vertexAttribDivisor(endRgba, 1);
   }
 
   update(bufferData) {
