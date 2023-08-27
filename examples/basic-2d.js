@@ -6,7 +6,7 @@ function main() {
   canvas.height = window.innerHeight;
   document.body.append(canvas);
 
-  const hexContext = new HexLinesContext2d({
+  new HexLinesContext2d({
     canvas,
     pixelSize: 4,
   }).add(hexPoints2dToArrayBuffer([

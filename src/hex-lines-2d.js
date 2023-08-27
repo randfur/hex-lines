@@ -70,7 +70,7 @@ export class HexLinesContext2d {
     this.gl.uniform1f(this.uniformLocations.width, this.canvas.width);
     this.gl.uniform1f(this.uniformLocations.height, this.canvas.height);
     this.gl.uniform1f(this.uniformLocations.pixelSize, this.pixelSize);
-    this.gl.uniformMatrix3fv(this.uniformLocations.transform, this.gl.false, new Float32Array([
+    this.gl.uniformMatrix3fv(this.uniformLocations.transform, this.gl.FALSE, new Float32Array([
       1, 0, 0,
       0, 1, 0,
       0, 0, 1,

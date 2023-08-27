@@ -11,6 +11,22 @@
     - Basically #ifdef.
   - A bit unfortunate these transformations need to happen per vertex rather than per point but should be fine, still orders of magnitude than doing it linearly on the CPU.
     - This could probably be done better with WebGPU with effectively a geometry shader to generate all the hex line vertices from one 3D transform application.
+  - Using left handed co-ordinate system.
+    - Z positive goes into screen, X goes right, Y goes up.
+- Wrote 3D version.
+  - Works!
+  - Shader covers both 2D and 3D using preprocessor style ${}.
+  - 3D feeds into 2D code path to draw to screen.
+  - Updated JS side to work with new attributes and uniforms.
+  - Updated 3D example to use 2D example plus various z values.
+    - Added camera rotation via hand crafted matrix.
+  - Added depth test.
+    - Mostly working but lines intersecting don't layer correctly, maybe something to do with having applied perspective myself?
+    - Yeah the z values wouldn't be linear along the line with perspective...
+    - May have to actually use GL w perspective.
+      - This is tricky because the hex shape needs to be aligned with the screen.
+      - Maybe the w can be faked and the x,y values pre-multiplied by w.
+      - Gonna try that for a while first.
 
 # 2023-08-26
 - 2D/3D

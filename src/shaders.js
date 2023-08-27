@@ -23,7 +23,6 @@ in uint endRgba;
 
 out vec4 vertexColour;
 
-${is3d ? `
 struct HexPoint3d {
   vec3 position;
   float size;
@@ -34,7 +33,6 @@ struct HexLine3d {
   HexPoint3d start;
   HexPoint3d end;
 };
-` : ''}
 
 struct HexPoint2d {
   vec2 position;
@@ -153,26 +151,38 @@ HexLine3d apply3dTransforms(HexLine3d hexLine3d) {
       hexLine3d,
       clipZMin(near, far))));
 }
-` : ''}
+`: ''}
 
 vec4 getVertexClipPosition(HexLine${2 + is3d}d hexLine, HexLineVertex hexLineVertex) {
   ${!is3d ? `
   hexLine.start.position = (vec3(hexLine.start.position, 1) * transform).xy;
   hexLine.end.position = (vec3(hexLine.end.position, 1) * transform).xy;
   ` : ''}
+
   vec2 angle = hexLine.start.position.xy == hexLine.end.position.xy ? vec2(cos(float(gl_InstanceID)), sin(float(gl_InstanceID))) : normalize(hexLine.end.position.xy - hexLine.start.position.xy);
-  vec2 screenPosition =
+  vec2 clipXy =
     (
       mix(hexLine.start.position.xy, hexLine.end.position.xy, hexLineVertex.progress) +
       rotate(hexLineVertex.offset, angle) *
       mix(hexLine.start.size, hexLine.end.size, hexLineVertex.progress)
-    ) / pixelSize;
+    ) / pixelSize / vec2(width / 2., height / 2.);
   bool enabled = hexLine.start.size > 0. && hexLine.end.size > 0.;
 
+  ${is3d ? `
+  float z = zToClipSpace(mix(
+    hexLine.start.position.z,
+    hexLine.end.position.z,
+    hexLineVertex.progress));
+  float w = 1.; // TODO: Figure out the right w here.
+  ` : `
+  float z = 0.;
+  float w = 1.;
+  `};
+
   return float(enabled) * vec4(
-    screenPosition / vec2(width / 2., height / 2.),
-    ${is3d ? 'zToClipSpace(mix(hexLine.start.position.z, hexLine.end.position.z, hexLineVertex.progress))' : '0'},
-    1);
+    clipXy * w,
+    z,
+    w);
 }
 
 vec4 getVertexColour(HexLine${2 + is3d}d hexLine, HexLineVertex hexLineVertex) {
