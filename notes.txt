@@ -1,5 +1,6 @@
 #2023-08-30
 - Added flat version of adding points to attempt to avoid memory allocation from object destructuring.
+- Moved methods onto hex line handle.
 
 #2023-08-29
 - Updated 3D handle to hold the ArrayBuffer and provide methods for writing points into it.
