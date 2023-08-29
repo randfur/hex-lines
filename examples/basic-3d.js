@@ -11,7 +11,8 @@ async function main() {
     pixelSize: 4,
     zDiv: 400,
   });
-  const hexHandle = hexContext.add(hexPoints3dToArrayBuffer([
+  const hexHandle = hexContext.createHandle();
+  hexHandle.addPoints([
     ...range(100).flatMap(i => {
       const x = (Math.random() - 0.5) * 1.5 * window.innerWidth;
       const y = (Math.random() - 0.5) * 1.5 * window.innerHeight;
@@ -31,8 +32,7 @@ async function main() {
     {position: {x: 190, y: -130, z: 0}, size: 50, colour: {r: 255, g: 255, b: 255, a: 255}},
     {position: {x: 190, y: -130, z: 0}, size: 50, colour: {r: 255, g: 255, b: 255, a: 255}},
     null,
-  ]));
-
+  ]);
 
   while (true) {
     const time = await new Promise(requestAnimationFrame);

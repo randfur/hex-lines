@@ -104,22 +104,24 @@ export class HexLinesContext3d {
     ].map(name => [name, this.gl.getAttribLocation(program, name)]));
   }
 
-  // [ x, y, z, size, rgba, ... ]
-  add(bufferData) {
-    return new HexLinesHandle3d(this, bufferData);
+  createHandle() {
+    return new HexLinesHandle3d(this);
   }
 }
 
 class HexLinesHandle3d {
-  constructor(hexLinesContext, bufferData) {
+  constructor(hexLinesContext) {
     this.hexLinesContext = hexLinesContext;
     this.gl = this.hexLinesContext.gl;
     this.vertexArray = this.gl.createVertexArray();
     this.gl.bindVertexArray(this.vertexArray);
+    this.buffer = new ArrayBuffer();
+    this.dataView = new DataView(this.buffer);
+    this.length = 0;
+    this.glBuffer = this.gl.createBuffer();
+    this.dirty = false;
 
-    this.buffer = this.gl.createBuffer();
-    this.update(bufferData);
-
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.glBuffer);
     const {
       startPosition,
       startSize,
@@ -150,15 +152,50 @@ class HexLinesHandle3d {
     this.gl.vertexAttribDivisor(endRgba, 1);
   }
 
-  update(bufferData) {
-    this.length = bufferData.byteLength / kBytesPerHexPoint3d;
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, bufferData, this.gl.DYNAMIC_DRAW);
+  ensureCapacity(length) {
+    const byteLength = length * kBytesPerHexPoint3d;
+    if (this.buffer.byteLength >= byteLength) {
+      return;
+    }
+    const newLength = Math.max(this.buffer.byteLength * 2, byteLength);
+    if (this.buffer.transfer) {
+      this.buffer = this.buffer.transfer(newLength);
+    } else {
+      const newBuffer = new ArrayBuffer(newLength);
+      new Uint8Array(newBuffer).set(new Uint8Array(this.buffer));
+      this.buffer = newBuffer;
+    }
+    this.dataView = new DataView(this.buffer);
+  }
+
+  addPoint(hexPoint3d) {
+    this.dirty = true;
+    this.ensureCapacity(this.length + 1);
+    setHexPoint3d(this.dataView, this.length, hexPoint3d);
+    ++this.length;
+  }
+
+  addPoints(hexPoints3d) {
+    this.dirty = true;
+    this.ensureCapacity(this.length + hexPoints3d.length);
+    for (const hexPoint3d of hexPoints3d) {
+      setHexPoint3d(this.dataView, this.length, hexPoint3d);
+      ++this.length;
+    }
+  }
+
+  clear() {
+    this.dirty = true;
+    this.length = 0;
   }
 
   draw() {
     this.gl.bindVertexArray(this.vertexArray);
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.glBuffer);
+    if (this.dirty) {
+      this.gl.bufferData(this.gl.ARRAY_BUFFER, this.buffer, this.gl.DYNAMIC_DRAW);
+      this.dirty = false;
+    }
     this.gl.drawArraysInstanced(this.gl.TRIANGLES, 0, 18, this.length - 1);
   }
 

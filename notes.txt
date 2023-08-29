@@ -1,3 +1,8 @@
+#2023-08-29
+- Updated 3D handle to hold the ArrayBuffer and provide methods for writing points into it.
+  - Will recycle the ArrayBuffer between clears and resize it as needed.
+  - Still need to write this for the 2D context, just want to get this working for bomber-hex-lines to use.
+
 #2023-08-27
 - 3D
   - Vertex shader needs to do a few things for 3D
