@@ -5,7 +5,7 @@ export const kBytesPerHexPoint3d = 5 * 4;
 
 export function setHexPoint3d(dataView, i, hexPoint3d) {
   if (hexPoint3d === null) {
-    dataView.setFloat32(i * kBytesPerHexPoint3d + 8, 0, kLittleEndian);
+    dataView.setFloat32(i * kBytesPerHexPoint3d + 12, 0, kLittleEndian);
     return;
   }
   const {position: {x, y, z}, size, colour} = hexPoint3d;
