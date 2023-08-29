@@ -6,7 +6,7 @@ function main() {
   canvas.height = window.innerHeight;
   document.body.append(canvas);
 
-  const hexContent = new HexContext2d({
+  const hexContext = new HexContext2d({
     canvas,
     pixelSize: 4,
   });

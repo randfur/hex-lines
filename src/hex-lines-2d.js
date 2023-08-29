@@ -46,11 +46,10 @@ export class HexContext2d {
     this.gl.uniform1f(this.uniformLocations.width, this.canvas.width);
     this.gl.uniform1f(this.uniformLocations.height, this.canvas.height);
     this.gl.uniform1f(this.uniformLocations.pixelSize, this.pixelSize);
-    this.gl.uniformMatrix4fv(this.uniformLocations.transform, this.gl.FALSE, new Float32Array([
-      1, 0, 0, 0,
-      0, 1, 0, 0,
-      0, 0, 1, 0,
-      0, 0, 0, 1,
+    this.gl.uniformMatrix3fv(this.uniformLocations.transform, this.gl.FALSE, new Float32Array([
+      1, 0, 0,
+      0, 1, 0,
+      0, 0, 1,
     ]));
 
     this.attributeLocations = Object.fromEntries([

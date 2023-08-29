@@ -11,7 +11,14 @@
   - Basic example is black screen, no errors.
   - Tried copy pasting the 3D into 2D and fixing it up, still black screen, no errors.
   - Might need to bisect to see when it broke.
-
+  - Died in 635e7f9a70f0eb551fb8ae2440c347a61a0a64ad when moving methods into the handle.
+    - This affected one of the utils.
+  - Found it:
+    - Misnamed variable in basic-2d, don't know why I didn't see an error.
+    - Forgot to update transform matrix (which still hasn't seen usage) to 3x3 instead of 4x4.
+  - Works again.
+- Dots:
+  - You can draw them with different sizes and colours for each hemihex half.
 
 #2023-08-29
 - Updated 3D handle to hold the ArrayBuffer and provide methods for writing points into it.
