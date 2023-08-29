@@ -1,19 +1,27 @@
-import {kLittleEndian, rgbaToUint32, logIf} from './utils.js';
+import {kLittleEndian, rgbaToUint32Flat, logIf} from './utils.js';
 import {buildVertexShader, kFragmentShader} from './shaders.js';
 
 export const kBytesPerHexPoint3d = 5 * 4;
 
-export function setHexPoint3d(dataView, i, hexPoint3d) {
-  if (hexPoint3d === null) {
-    dataView.setFloat32(i * kBytesPerHexPoint3d + 12, 0, kLittleEndian);
-    return;
-  }
-  const {position: {x, y, z}, size, colour} = hexPoint3d;
+export function setHexPoint3dFlat(dataView, i, x, y, z, size, r, g, b, a) {
   dataView.setFloat32(i * kBytesPerHexPoint3d + 0, x, kLittleEndian);
   dataView.setFloat32(i * kBytesPerHexPoint3d + 4, y, kLittleEndian);
   dataView.setFloat32(i * kBytesPerHexPoint3d + 8, z, kLittleEndian);
   dataView.setFloat32(i * kBytesPerHexPoint3d + 12, size, kLittleEndian);
-  dataView.setUint32(i * kBytesPerHexPoint3d + 16, rgbaToUint32(colour), kLittleEndian);
+  dataView.setUint32(i * kBytesPerHexPoint3d + 16, rgbaToUint32Flat(r, g, b, a), kLittleEndian);
+}
+
+export function clearHexPoint3d(dataView, i) {
+  dataView.setFloat32(i * kBytesPerHexPoint3d + 12, 0, kLittleEndian);
+}
+
+export function setHexPoint3d(dataView, i, hexPoint3d) {
+  if (hexPoint3d === null) {
+    clearHexPoint3d(dataView, i);
+    return;
+  }
+  const {position: {x, y, z}, size, colour: {r, g, b, a}} = hexPoint3d;
+  setHexPoint3dFlat(dataView, i, x, y, z, size, r, g, b, a);
 }
 
 export function setHexPoints3d(dataView, hexPoints3d) {
@@ -22,13 +30,7 @@ export function setHexPoints3d(dataView, hexPoints3d) {
   }
 }
 
-export function hexPoints3dToArrayBuffer(hexPoints3d) {
-  const buffer = new ArrayBuffer(hexPoints3d.length * kBytesPerHexPoint3d);
-  setHexPoints3d(new DataView(buffer), hexPoints3d);
-  return buffer;
-}
-
-export class HexLinesContext3d {
+export class HexContext3d {
   constructor({canvas, pixelSize=1, antialias=true, zMin=1, zMax=1000000, zDiv=800}) {
     this.canvas = canvas;
     this.pixelSize = pixelSize;
@@ -104,12 +106,12 @@ export class HexLinesContext3d {
     ].map(name => [name, this.gl.getAttribLocation(program, name)]));
   }
 
-  createHandle() {
-    return new HexLinesHandle3d(this);
+  createLines() {
+    return new HexLines3d(this);
   }
 }
 
-class HexLinesHandle3d {
+class HexLines3d  {
   constructor(hexLinesContext) {
     this.hexLinesContext = hexLinesContext;
     this.gl = this.hexLinesContext.gl;

@@ -1,4 +1,4 @@
-import {HexLinesContext3d, hexPoints3dToArrayBuffer} from '../src/hex-lines-3d.js';
+import {HexContext3d} from '../src/hex-lines-3d.js';
 
 async function main() {
   const canvas = document.createElement('canvas');
@@ -6,13 +6,13 @@ async function main() {
   canvas.height = window.innerHeight;
   document.body.append(canvas);
 
-  const hexContext = new HexLinesContext3d({
+  const hexContext = new HexContext3d({
     canvas,
     pixelSize: 4,
     zDiv: 400,
   });
-  const hexHandle = hexContext.createHandle();
-  hexHandle.addPoints([
+  const hexLines = hexContext.createLines();
+  hexLines.addPoints([
     ...range(100).flatMap(i => {
       const x = (Math.random() - 0.5) * 1.5 * window.innerWidth;
       const y = (Math.random() - 0.5) * 1.5 * window.innerHeight;
@@ -43,7 +43,7 @@ async function main() {
       -Math.sin(angle), 0, Math.cos(angle), 900,
       0, 0, 0, 1,
     ])),
-    hexHandle.draw();
+    hexLines.draw();
   }
 }
 
