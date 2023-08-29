@@ -127,16 +127,16 @@ class HexLines3d  {
     this.gl.vertexAttribDivisor(endRgba, 1);
   }
 
-  ensureCapacity(length) {
-    const byteLength = length * kBytesPerHexPoint3d;
-    if (this.buffer.byteLength >= byteLength) {
+  ensureCapacity(ensureLength) {
+    const ensureByteLength = ensureLength * kBytesPerHexPoint3d;
+    if (this.buffer.byteLength >= ensureByteLength) {
       return;
     }
-    const newLength = Math.max(this.buffer.byteLength * 2, byteLength);
+    const newByteLength = Math.max(this.buffer.byteLength * 2, ensureByteLength);
     if (this.buffer.transfer) {
-      this.buffer = this.buffer.transfer(newLength);
+      this.buffer = this.buffer.transfer(newByteLength);
     } else {
-      const newBuffer = new ArrayBuffer(newLength);
+      const newBuffer = new ArrayBuffer(newByteLength);
       new Uint8Array(newBuffer).set(new Uint8Array(this.buffer));
       this.buffer = newBuffer;
     }
@@ -186,7 +186,7 @@ class HexLines3d  {
     this.gl.bindVertexArray(this.vertexArray);
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.glBuffer);
     if (this.dirty) {
-      this.gl.bufferData(this.gl.ARRAY_BUFFER, this.buffer, this.gl.DYNAMIC_DRAW);
+      this.gl.bufferData(this.gl.ARRAY_BUFFER, this.dataView, this.gl.DYNAMIC_DRAW, 0, this.length * kBytesPerHexPoint3d);
       this.dirty = false;
     }
     this.gl.drawArraysInstanced(this.gl.TRIANGLES, 0, 18, this.length - 1);
