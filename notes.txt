@@ -1,6 +1,17 @@
 #2023-08-30
 - Added flat version of adding points to attempt to avoid memory allocation from object destructuring.
 - Moved methods onto hex line handle.
+- Perspective interpolation.
+  - Should be able to make use of w interpolation in the GPU.
+  - The orientation should only be a 3x3 matrix, the outer 4x4 layer can be hand crafted to perform the divide by z.
+    - Need to perform the z clamp into -1,1 and set w appropriately from 0 to far-near based on z.
+  - The hemihex portions can operate on the post /w x y values and use *w to compensate.
+- 2D broke at some point.
+  - Been getting out of date.
+  - Basic example is black screen, no errors.
+  - Tried copy pasting the 3D into 2D and fixing it up, still black screen, no errors.
+  - Might need to bisect to see when it broke.
+
 
 #2023-08-29
 - Updated 3D handle to hold the ArrayBuffer and provide methods for writing points into it.

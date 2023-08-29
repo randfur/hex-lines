@@ -3,31 +3,7 @@ import {buildVertexShader, kFragmentShader} from './shaders.js';
 
 export const kBytesPerHexPoint2d = 4 * 4;
 
-export function setHexPoint2d(dataView, i, hexPoint2d) {
-  if (hexPoint2d === null) {
-    dataView.setFloat32(i * kBytesPerHexPoint2d + 8, 0, kLittleEndian);
-    return;
-  }
-  const {position: {x, y}, size, colour} = hexPoint2d;
-  dataView.setFloat32(i * kBytesPerHexPoint2d + 0, x, kLittleEndian);
-  dataView.setFloat32(i * kBytesPerHexPoint2d + 4, y, kLittleEndian);
-  dataView.setFloat32(i * kBytesPerHexPoint2d + 8, size, kLittleEndian);
-  dataView.setUint32(i * kBytesPerHexPoint2d + 12, rgbaToUint32(colour), kLittleEndian);
-}
-
-export function setHexPoints2d(dataView, hexPoints2d) {
-  for (let i = 0; i < hexPoints2d.length; ++i) {
-    setHexPoint2d(dataView, i, hexPoints2d[i]);
-  }
-}
-
-export function hexPoints2dToArrayBuffer(hexPoints2d) {
-  const buffer = new ArrayBuffer(hexPoints2d.length * kBytesPerHexPoint2d);
-  setHexPoints2d(new DataView(buffer), hexPoints2d);
-  return buffer;
-}
-
-export class HexLinesContext2d {
+export class HexContext2d {
   constructor({canvas, pixelSize=1, antialias=true}) {
     this.canvas = canvas;
     this.pixelSize = pixelSize;
@@ -70,10 +46,11 @@ export class HexLinesContext2d {
     this.gl.uniform1f(this.uniformLocations.width, this.canvas.width);
     this.gl.uniform1f(this.uniformLocations.height, this.canvas.height);
     this.gl.uniform1f(this.uniformLocations.pixelSize, this.pixelSize);
-    this.gl.uniformMatrix3fv(this.uniformLocations.transform, this.gl.FALSE, new Float32Array([
-      1, 0, 0,
-      0, 1, 0,
-      0, 0, 1,
+    this.gl.uniformMatrix4fv(this.uniformLocations.transform, this.gl.FALSE, new Float32Array([
+      1, 0, 0, 0,
+      0, 1, 0, 0,
+      0, 0, 1, 0,
+      0, 0, 0, 1,
     ]));
 
     this.attributeLocations = Object.fromEntries([
@@ -86,22 +63,24 @@ export class HexLinesContext2d {
     ].map(name => [name, this.gl.getAttribLocation(program, name)]));
   }
 
-  // [ x, y, size, rgba, ... ]
-  add(bufferData) {
-    return new HexLinesHandle2d(this, bufferData);
+  createLines() {
+    return new HexLines2d(this);
   }
 }
 
-class HexLinesHandle2d {
-  constructor(hexLinesContext, bufferData) {
+class HexLines2d  {
+  constructor(hexLinesContext) {
     this.hexLinesContext = hexLinesContext;
     this.gl = this.hexLinesContext.gl;
     this.vertexArray = this.gl.createVertexArray();
     this.gl.bindVertexArray(this.vertexArray);
+    this.buffer = new ArrayBuffer();
+    this.dataView = new DataView(this.buffer);
+    this.length = 0;
+    this.glBuffer = this.gl.createBuffer();
+    this.dirty = false;
 
-    this.buffer = this.gl.createBuffer();
-    this.update(bufferData);
-
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.glBuffer);
     const {
       startPosition,
       startSize,
@@ -132,15 +111,67 @@ class HexLinesHandle2d {
     this.gl.vertexAttribDivisor(endRgba, 1);
   }
 
-  update(bufferData) {
-    this.length = bufferData.byteLength / kBytesPerHexPoint2d;
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, bufferData, this.gl.DYNAMIC_DRAW);
+  ensureCapacity(length) {
+    const byteLength = length * kBytesPerHexPoint2d;
+    if (this.buffer.byteLength >= byteLength) {
+      return;
+    }
+    const newLength = Math.max(this.buffer.byteLength * 2, byteLength);
+    if (this.buffer.transfer) {
+      this.buffer = this.buffer.transfer(newLength);
+    } else {
+      const newBuffer = new ArrayBuffer(newLength);
+      new Uint8Array(newBuffer).set(new Uint8Array(this.buffer));
+      this.buffer = newBuffer;
+    }
+    this.dataView = new DataView(this.buffer);
+  }
+
+  addPointFlat(x, y, size, r, g, b, a) {
+    this.dirty = true;
+    this.ensureCapacity(this.length + 1);
+    this.dataView.setFloat32(this.length * kBytesPerHexPoint2d + 0, x, kLittleEndian);
+    this.dataView.setFloat32(this.length * kBytesPerHexPoint2d + 4, y, kLittleEndian);
+    this.dataView.setFloat32(this.length * kBytesPerHexPoint2d + 8, size, kLittleEndian);
+    this.dataView.setUint32(this.length * kBytesPerHexPoint2d + 12, rgbaToUint32(r, g, b, a), kLittleEndian);
+    ++this.length;
+  }
+
+  addNull() {
+    this.dirty = true;
+    this.ensureCapacity(this.length + 1);
+    this.dataView.setFloat32(this.length * kBytesPerHexPoint2d + 8, 0, kLittleEndian);
+    ++this.length;
+  }
+
+  addPoint(hexPoint2d) {
+    if (hexPoint2d === null) {
+      this.addNull();
+      return;
+    }
+    const {position: {x, y}, size, colour: {r, g, b, a}} = hexPoint2d;
+    this.addPointFlat(x, y, size, r, g, b, a);
+  }
+
+  addPoints(hexPoints2d) {
+    this.ensureCapacity(this.length + hexPoints2d.length);
+    for (const hexPoint2d of hexPoints2d) {
+      this.addPoint(hexPoint2d);
+    }
+  }
+
+  clear() {
+    this.dirty = true;
+    this.length = 0;
   }
 
   draw() {
     this.gl.bindVertexArray(this.vertexArray);
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.glBuffer);
+    if (this.dirty) {
+      this.gl.bufferData(this.gl.ARRAY_BUFFER, this.buffer, this.gl.DYNAMIC_DRAW);
+      this.dirty = false;
+    }
     this.gl.drawArraysInstanced(this.gl.TRIANGLES, 0, 18, this.length - 1);
   }
 
