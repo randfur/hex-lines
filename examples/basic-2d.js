@@ -1,4 +1,4 @@
-import {HexContext2d} from '../src/hex-lines-2d.js';
+import {HexLinesContext} from '../src/hex-lines.js';
 
 function main() {
   const canvas = document.createElement('canvas');
@@ -6,11 +6,12 @@ function main() {
   canvas.height = window.innerHeight;
   document.body.append(canvas);
 
-  const hexContext = new HexContext2d({
+  const hexLinesContext = new HexLinesContext({
     canvas,
     pixelSize: 4,
+    is3d: false,
   });
-  const hexLines = hexContext.createLines();
+  const hexLines = hexLinesContext.createLines();
   hexLines.addPoints([
     ...range(20).flatMap(i => {
       const x = (Math.random() - 0.5) * window.innerWidth;

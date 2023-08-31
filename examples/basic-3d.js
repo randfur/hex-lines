@@ -1,4 +1,4 @@
-import {HexContext3d} from '../src/hex-lines-3d.js';
+import {HexLinesContext} from '../src/hex-lines.js';
 
 async function main() {
   const canvas = document.createElement('canvas');
@@ -6,12 +6,13 @@ async function main() {
   canvas.height = window.innerHeight;
   document.body.append(canvas);
 
-  const hexContext = new HexContext3d({
+  const hexLinesContext = new HexLinesContext({
     canvas,
     pixelSize: 4,
+    is3d: true,
     zDiv: 400,
   });
-  const hexLines = hexContext.createLines();
+  const hexLines = hexLinesContext.createLines();
   hexLines.addPoints([
     ...range(100).flatMap(i => {
       const x = (Math.random() - 0.5) * 1.5 * window.innerWidth;
@@ -37,7 +38,7 @@ async function main() {
   while (true) {
     const time = await new Promise(requestAnimationFrame);
     const angle = time / 2000;
-    hexContext.gl.uniformMatrix4fv(hexContext.uniformLocations.cameraTransform, hexContext.gl.FALSE, new Float32Array([
+    hexLinesContext.gl.uniformMatrix4fv(hexLinesContext.uniformLocations.cameraTransform, hexLinesContext.gl.FALSE, new Float32Array([
       Math.cos(angle), 0, Math.sin(angle), 0,
       0, 1, 0, 0,
       -Math.sin(angle), 0, Math.cos(angle), 900,
