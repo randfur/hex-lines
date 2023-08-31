@@ -6,6 +6,7 @@
   - Probably not really a concern, should just try and see if there's any difference given bomber-hex-lines can serve as a benchmarking demo.
   - Done, doesn't seem too bad.
   - Left addPointFlat() as taking a z value, too complicated to not.
+  - Updated bomber-hex-lines to use it, negligible difference.
 - Perspective
   - Considering to make the perspective matrix transform the user's job rather than having zMin, zMax and zDiv.
   - Just work with the value of w in the shader after transformation.
