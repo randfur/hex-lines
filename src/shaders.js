@@ -88,7 +88,7 @@ float getZ(float z) {
 float getW(float z) {
   return z / zDiv;
 }
-` : ``}
+` : ''}
 
 vec2 getOffset(HexLineVertex hexLineVertex, vec2 start, vec2 end) {
   vec2 angle =
