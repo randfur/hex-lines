@@ -33,19 +33,18 @@ export class HexLinesContext {
     logIf(this.gl.getProgramInfoLog(program));
     this.gl.useProgram(program);
 
-    this.gl.enable(this.gl.BLEND);
-    this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
-
-    this.gl.enable(this.gl.DEPTH_TEST);
-    this.gl.depthFunc(this.gl.LESS);
+    if (this.is3d) {
+      this.gl.enable(this.gl.DEPTH_TEST);
+      this.gl.depthFunc(this.gl.LESS);
+    }
 
     this.uniformLocations = Object.fromEntries([
       'width',
       'height',
       'pixelSize',
       'transform',
+      'cameraTransform',
       ...(this.is3d ? [
-        'cameraTransform',
         'zMin',
         'zMax',
         'zDiv',
@@ -55,28 +54,22 @@ export class HexLinesContext {
     this.gl.uniform1f(this.uniformLocations.height, this.canvas.height);
     this.gl.uniform1f(this.uniformLocations.pixelSize, this.pixelSize);
     if (this.is3d) {
-      this.gl.uniformMatrix4fv(this.uniformLocations.transform, this.gl.FALSE, new Float32Array([
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1,
-      ]));
-      this.gl.uniformMatrix4fv(this.uniformLocations.cameraTransform, this.gl.FALSE, new Float32Array([
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1,
-      ]));
       this.gl.uniform1f(this.uniformLocations.zMin, zMin);
       this.gl.uniform1f(this.uniformLocations.zMax, zMax);
       this.gl.uniform1f(this.uniformLocations.zDiv, zDiv);
-    } else {
-      this.gl.uniformMatrix3fv(this.uniformLocations.transform, this.gl.FALSE, new Float32Array([
-        1, 0, 0,
-        0, 1, 0,
-        0, 0, 1,
-      ]));
     }
+    const identityMatrix = new Float32Array(this.is3d ? [
+      1, 0, 0, 0,
+      0, 1, 0, 0,
+      0, 0, 1, 0,
+      0, 0, 0, 1,
+    ] : [
+      1, 0, 0,
+      0, 1, 0,
+      0, 0, 1,
+    ]);
+    this.gl[`uniformMatrix${3 + this.is3d}fv`](this.uniformLocations.transform, this.gl.FALSE, identityMatrix);
+    this.gl[`uniformMatrix${3 + this.is3d}fv`](this.uniformLocations.cameraTransform, this.gl.FALSE, identityMatrix);
 
     this.attributeLocations = Object.fromEntries([
       'startPosition',

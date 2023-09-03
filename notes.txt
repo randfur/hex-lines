@@ -1,3 +1,16 @@
+#2023-09-03
+- Perspective:
+  - Researched how perspective matrices are calculated.
+  - https://unspecified.wordpress.com/2012/06/21/calculating-the-gluperspective-matrix-and-other-opengl-matrix-maths/
+  - Turns out z is non-linear.
+  - Is of the form a + b / z after / w.
+  - w is z / zDiv, can solve for a * z + b for (zNear, -1) and (zFar, 1).
+  - Resulting equations have some similarity with article but not quite the same:
+    - a = 2 / (zMax - zMin)
+    - b = 1 - 2 / (zMax - zMin) * zMax
+  - Used the computed value of z as a greyscale colour to debug the equation, looked cool.
+  - Works! Work correctly with / w interpolation of depths, now long lines layer correctly.
+
 #2023-08-31
 - Sharing code:
   - The 2D and 3D versions have a lot of overlap.

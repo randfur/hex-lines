@@ -6,7 +6,12 @@ uniform float width;
 uniform float height;
 uniform float pixelSize;
 uniform mat${3 + is3d} transform;
-${is3d ? 'uniform mat4 cameraTransform;' : ''}
+uniform mat${3 + is3d} cameraTransform;
+${is3d ? `
+uniform float zMin;
+uniform float zMax;
+uniform float zDiv;
+` : ''}
 
 in vec${2 + is3d} startPosition;
 in float startSize;
@@ -64,13 +69,26 @@ vec2 rotate(vec2 v, vec2 angle) {
     v.x * angle.y + v.y * angle.x);
 }
 
-vec4 rgbaToColour(uint rgba) {
-  return vec4(
-    float((rgba >> (3 * 8)) & 0xffu) / 255.,
-    float((rgba >> (2 * 8)) & 0xffu) / 255.,
-    float((rgba >> (1 * 8)) & 0xffu) / 255.,
-    float((rgba >> (0 * 8)) & 0xffu) / 255.);
+${is3d ? `
+float getZ(float z) {
+  // a * zMin + b = -1
+  // a * zMax + b = 1
+  //
+  // a * (zMax - zMin) = 2
+  // a = 2 / (zMax - zMin)
+  //
+  // 2 / (zMax - zMin) * zMax + b = 1
+  // b = 1 - 2 / (zMax - zMin) * zMax
+
+  float a = 2. / (zMax - zMin);
+  float b = 1. - 2. / (zMax - zMin) * zMax;
+  return (a * z + b) / zDiv;
 }
+
+float getW(float z) {
+  return z / zDiv;
+}
+` : ``}
 
 vec2 getOffset(HexLineVertex hexLineVertex, vec2 start, vec2 end) {
   vec2 angle =
@@ -80,61 +98,47 @@ vec2 getOffset(HexLineVertex hexLineVertex, vec2 start, vec2 end) {
   return rotate(hexLineVertex.offset, angle) * mix(startSize, endSize, hexLineVertex.progress);
 }
 
-float getZ(vec4 v) {
-  return v.z / 501.;
-}
-float getW(vec4 v) {
-  return v.w * (v.z / 1000. + 0.) * 2.;
+vec4 rgbaToColour(uint rgba) {
+  return vec4(
+    float((rgba >> (3 * 8)) & 0xffu) / 255.,
+    float((rgba >> (2 * 8)) & 0xffu) / 255.,
+    float((rgba >> (1 * 8)) & 0xffu) / 255.,
+    float((rgba >> (0 * 8)) & 0xffu) / 255.);
 }
 
 void main() {
   HexLineVertex hexLineVertex = kHexLineVertices[gl_VertexID];
-  float enabled = float(startSize > 0. && endSize > 0.);
+
+  vec${3 + is3d} startTransformedPosition = vec${3 + is3d}(startPosition, 1) * transform * cameraTransform;
+  vec${3 + is3d} endTransformedPosition = vec${3 + is3d}(endPosition, 1) * transform * cameraTransform;
+  vec${3 + is3d} transformedPosition = mix(startTransformedPosition, endTransformedPosition, hexLineVertex.progress);
 
   ${is3d ? `
-  vec4 startTransformedPosition = vec4(startPosition, 1) * transform * cameraTransform;
-  vec4 endTransformedPosition = vec4(endPosition, 1) * transform * cameraTransform;
-  vec4 transformedPosition = mix(startTransformedPosition, endTransformedPosition, hexLineVertex.progress);
+  float startZ = getZ(startTransformedPosition.z);
+  float endZ = getZ(endTransformedPosition.z);
+  float startW = getW(startTransformedPosition.z);
+  float endW = getW(endTransformedPosition.z);
+  ` : ''}
 
-  float startZ = getZ(startTransformedPosition);
-  float startW = getW(startTransformedPosition);
-  float endZ = getZ(endTransformedPosition);
-  float endW = getW(endTransformedPosition);
-  vec2 startScreenPosition = startTransformedPosition.xy / startW;
-  vec2 endScreenPosition = endTransformedPosition.xy / endW;
-  vec2 offset = getOffset(hexLineVertex, startScreenPosition, endScreenPosition);
+  vec2 offset = getOffset(
+    hexLineVertex,
+    startTransformedPosition.xy${is3d ? ' / startW' : ''},
+    endTransformedPosition.xy${is3d ? ' / endW' : ''}
+  );
 
+  float enabled = float(startSize > 0. && endSize > 0.);
   gl_Position = enabled * vec4(
     (transformedPosition.xy + offset) / vec2(width / 2., height / 2.) / pixelSize,
-    mix(startZ, endZ, hexLineVertex.progress),
-    mix(startW, endW, hexLineVertex.progress)
+    ${is3d ? 'mix(startZ, endZ, hexLineVertex.progress)' : '0'},
+    ${is3d ? 'mix(startW, endW, hexLineVertex.progress)' : '1'}
   );
-  // gl_Position = enabled * vec4(
-  //   startTransformedPosition.xy + offset * w,
-  //   z,
-  //   w * pixelSize
-  // );
-  ` : `
-  vec2 startScreenPosition = (vec3(startPosition, 1) * transform).xy;
-  vec2 endScreenPosition = (vec3(endPosition, 1) * transform).xy;
-  vec2 angle =
-    startScreenPosition.xy == endScreenPosition.xy
-    ? vec2(cos(float(gl_InstanceID)), sin(float(gl_InstanceID)))
-    : normalize(endScreenPosition.xy - startScreenPosition.xy);
-  vec2 screenPosition =
-    (
-      mix(startScreenPosition, endScreenPosition, hexLineVertex.progress) +
-      getOffset(hexLineVertex, startScreenPosition, endScreenPosition)
-    ) / pixelSize;
-
-  gl_Position = enabled * vec4(screenPosition / vec2(width / 2., height / 2.), 0, 1);
-  `}
 
   vertexColour = mix(
     rgbaToColour(startRgba),
     rgbaToColour(endRgba),
     hexLineVertex.progress
   );
+  // vertexColour = vec4(vec3(1,1,1) * (mix(startZ, endZ, hexLineVertex.progress) + 2.) / 3., 1.);
 }
 `;
 }
