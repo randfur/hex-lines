@@ -71,18 +71,19 @@ vec2 rotate(vec2 v, vec2 angle) {
 
 ${is3d ? `
 float getZ(float z) {
-  // a * zMin + b = -1
-  // a * zMax + b = 1
+  // a * zMin + b = -1 / zDiv
+  // a * zMax + b = 1 / zDiv
   //
-  // a * (zMax - zMin) = 2
-  // a = 2 / (zMax - zMin)
+  // a * (zMax - zMin) = 2 / zDiv
+  // a = 2 / zDiv / (zMax - zMin)
   //
-  // 2 / (zMax - zMin) * zMax + b = 1
-  // b = 1 - 2 / (zMax - zMin) * zMax
+  // 2 / zDiv / (zMax - zMin) * zMax + b = 1 / zDiv
+  // b = 1 / zDiv - 2 / zDiv / (zMax - zMin) * zMax
+  // b = (1 - 2 / (zMax - zMin) * zMax) / zDiv
 
-  float a = 2. / (zMax - zMin);
-  float b = 1. - 2. / (zMax - zMin) * zMax;
-  return (a * z + b) / zDiv;
+  float a = 2. / zDiv / (zMax - zMin);
+  float b = (1. - 2. / (zMax - zMin) * zMax) / zDiv;
+  return a * z + b;
 }
 
 float getW(float z) {
