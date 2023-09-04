@@ -2,7 +2,7 @@ import {kLittleEndian, rgbaToUint32, logIf} from './utils.js';
 import {buildVertexShader, kFragmentShader} from './shaders.js';
 
 export class HexLinesContext {
-  constructor({canvas, pixelSize=1, antialias=true, is3d=false, zMin=1, zMax=1000000, zDiv=800}) {
+  constructor({canvas, pixelSize=1, antialias=true, is3d=false, depthTest=true, zMin=1, zMax=1000000, zDiv=800}) {
     this.canvas = canvas;
     this.pixelSize = pixelSize;
     this.is3d = is3d;
@@ -33,7 +33,7 @@ export class HexLinesContext {
     logIf(this.gl.getProgramInfoLog(program));
     this.gl.useProgram(program);
 
-    if (this.is3d) {
+    if (this.is3d && depthTest) {
       this.gl.enable(this.gl.DEPTH_TEST);
       this.gl.depthFunc(this.gl.LESS);
     }
