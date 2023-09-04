@@ -1,3 +1,12 @@
+#2023-09-05
+- 3D no longer working on mobile.
+  - Black screen.
+  - JS values seem to be computing correctly, likely a shader issue.
+  - Tried adding depthTest option to disable it.
+    - This was working backwards on my phone previously.
+    - Disabling depth test did not fix it.
+  - Need to bisect what happens in the shader that's causing the issue.
+
 #2023-09-03
 - Perspective:
   - Researched how perspective matrices are calculated.
