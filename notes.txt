@@ -1,3 +1,12 @@
+#2023-09-06
+- Discovered why it was not working on mobile.
+  - Mobile uses 16 bit floats and the default zMax value was set to 1000000.
+  - The max f16 value is 65504.
+  - https://en.wikipedia.org/wiki/Half-precision_floating-point_format
+  - Updated default zMax to 65504 and all works now.
+  - Was not an issue with the new w logic.
+  - Also depth test is working now, likely due to using w properly.
+
 #2023-09-05
 - 3D no longer working on mobile.
   - Black screen.

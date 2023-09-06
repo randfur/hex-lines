@@ -1,8 +1,10 @@
 import {kLittleEndian, rgbaToUint32, logIf} from './utils.js';
 import {buildVertexShader, kFragmentShader} from './shaders.js';
 
+const kMaxFloat16Value = 65504;
+
 export class HexLinesContext {
-  constructor({canvas, pixelSize=1, antialias=true, is3d=false, depthTest=true, zMin=1, zMax=1000000, zDiv=800}) {
+  constructor({canvas, pixelSize=1, antialias=true, is3d=false, depthTest=true, zMin=1, zMax=kMaxFloat16Value, zDiv=800}) {
     this.canvas = canvas;
     this.pixelSize = pixelSize;
     this.is3d = is3d;
