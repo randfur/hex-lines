@@ -1,16 +1,12 @@
 import {HexLinesContext} from '../src/hex-lines.js';
 
 async function main() {
-  const canvas = document.createElement('canvas');
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  document.body.append(canvas);
+  const {
+    width,
+    height,
+    hexLinesContext,
+  } = HexLinesContext.setupFullPageContext({is3d: true});
 
-  const hexLinesContext = new HexLinesContext({
-    canvas,
-    pixelSize: 4,
-    is3d: true,
-  });
   const hexLines = hexLinesContext.createLines();
   hexLines.addPoints([
     ...range(100).flatMap(i => {

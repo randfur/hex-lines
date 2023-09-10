@@ -1,3 +1,6 @@
+#2023-09-10
+- Added setupFullPageContext() helper function to do the body CSS and canvas width height boiler plate.
+
 #2023-09-06
 - Discovered why it was not working on mobile.
   - Mobile uses 16 bit floats and the default zMax value was set to 1000000.

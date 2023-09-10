@@ -1,21 +1,17 @@
 import {HexLinesContext} from '../src/hex-lines.js';
 
 function main() {
-  const canvas = document.createElement('canvas');
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  document.body.append(canvas);
+  const {
+    width,
+    height,
+    hexLinesContext,
+  } = HexLinesContext.setupFullPageContext();
 
-  const hexLinesContext = new HexLinesContext({
-    canvas,
-    pixelSize: 4,
-    is3d: false,
-  });
   const hexLines = hexLinesContext.createLines();
   hexLines.addPoints([
     ...range(20).flatMap(i => {
-      const x = (Math.random() - 0.5) * window.innerWidth;
-      const y = (Math.random() - 0.5) * window.innerHeight;
+      const x = (Math.random() - 0.5) * width;
+      const y = (Math.random() - 0.5) * height;
       const hexPoint = {position: {x, y}, size: 20, colour: {r: 255, g: 255, b: 255, a: 255}};
       return [hexPoint, hexPoint, null];
     }),

@@ -4,7 +4,32 @@ import {buildVertexShader, kFragmentShader} from './shaders.js';
 const kMaxFloat16Value = 65504;
 
 export class HexLinesContext {
-  constructor({canvas, pixelSize=1, antialias=true, is3d=false, depthTest=true, zMin=1, zMax=kMaxFloat16Value, zDiv=800}) {
+  static setupFullPageContext(hexLinesContextOptions={}) {
+    document.body.style = `
+      background-color: black;
+      padding: 0;
+      margin: 0;
+      overflow: 0;
+    `;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    document.body.append(canvas);
+    const hexLinesContext = new HexLinesContext({
+      canvas,
+      ...hexLinesContextOptions,
+    });
+    return {
+      width,
+      height,
+      canvas,
+      hexLinesContext,
+    };
+  }
+
+  constructor({canvas, pixelSize=4, antialias=true, is3d=false, depthTest=true, zMin=1, zMax=kMaxFloat16Value, zDiv=800}) {
     this.canvas = canvas;
     this.pixelSize = pixelSize;
     this.is3d = is3d;
