@@ -216,6 +216,9 @@ class HexLines  {
   }
 
   draw() {
+    if (this.length === 0) {
+      return;
+    }
     this.gl.bindVertexArray(this.vertexArray);
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.glBuffer);
     if (this.dirty) {
