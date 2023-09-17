@@ -5,7 +5,7 @@ const kMaxFloat16Value = 65504;
 
 export class HexLinesContext {
   static setupFullPageContext(hexLinesContextOptions={}) {
-    document.body.style = `
+    document.body.style.cssText += `
       background-color: black;
       padding: 0;
       margin: 0;
