@@ -1,3 +1,6 @@
+# 2023-10-27
+- Default alpha to 255.
+
 # 2023-09-10
 - Added setupFullPageContext() helper function to do the body CSS and canvas width height boiler plate.
 
