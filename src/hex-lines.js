@@ -199,7 +199,17 @@ class HexLines  {
       this.addNull();
       return;
     }
-    const {position: {x, y, z=0}, size, colour: {r, g, b, a=255}} = hexPoint;
+    const {position: {x=0, y=0, z=0}, size=0, colour: {r=0, g=0, b=0, a=255}} = hexPoint;
+    this.addPointFlat(x, y, z, size, r, g, b, a);
+  }
+
+  addPointTwice(hexPoint) {
+    if (hexPoint === null) {
+      this.addNull();
+      return;
+    }
+    const {position: {x=0, y=0, z=0}, size=0, colour: {r=0, g=0, b=0, a=255}} = hexPoint;
+    this.addPointFlat(x, y, z, size, r, g, b, a);
     this.addPointFlat(x, y, z, size, r, g, b, a);
   }
 

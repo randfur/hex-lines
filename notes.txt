@@ -1,4 +1,8 @@
 # 2023-10-27
+- Default x, y, size, r, g, b to 0.
+- Add addPointTwice().
+
+# 2023-10-27
 - Default alpha to 255.
 
 # 2023-09-10
