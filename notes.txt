@@ -1,3 +1,7 @@
+# 2023-11-16
+- Redid addPointTwice() as addDot() which auto adds the null.
+- Really gotta remove the alpha channel...
+
 # 2023-10-27
 - Default x, y, size, r, g, b to 0.
 - Add addPointTwice().
