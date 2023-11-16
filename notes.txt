@@ -1,3 +1,6 @@
+# 2023-11-17
+- Halved the dot angle increment per instance, more pronounced now.
+
 # 2023-11-16
 - Redid addPointTwice() as addDot() which auto adds the null.
 - Really gotta remove the alpha channel...

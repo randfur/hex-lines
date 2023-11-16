@@ -94,7 +94,7 @@ float getW(float z) {
 vec2 getOffset(HexLineVertex hexLineVertex, vec2 start, vec2 end) {
   vec2 angle =
     start == end
-    ? vec2(cos(float(gl_InstanceID)), sin(float(gl_InstanceID)))
+    ? vec2(cos(float(gl_InstanceID) / 2.), sin(float(gl_InstanceID) / 2.))
     : normalize(end - start);
   return rotate(hexLineVertex.offset, angle) * mix(startSize, endSize, hexLineVertex.progress);
 }
@@ -139,7 +139,6 @@ void main() {
     rgbaToColour(endRgba),
     hexLineVertex.progress
   );
-  // vertexColour = vec4(vec3(1,1,1) * (mix(startZ, endZ, hexLineVertex.progress) + 2.) / 3., 1.);
 }
 `;
 }
