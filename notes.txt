@@ -7,6 +7,7 @@
     - Done.
     - Renamed them to just transformMatrix and put them on the context and hex lines respectively.
 - Fixed overflow: 0 bug.
+- Add touch-action: manipulation in the hopes it makes mouse/pointer move events work better on mobile.
 
 # 2023-11-17
 - Halved the dot angle increment per instance, more pronounced now.
