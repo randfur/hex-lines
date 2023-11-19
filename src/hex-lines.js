@@ -10,7 +10,7 @@ export class HexLinesContext {
       padding: 0;
       margin: 0;
       overflow: hidden;
-      touch-action: manipulation;
+      touch-action: none;
     `;
     const width = window.innerWidth;
     const height = window.innerHeight;
