@@ -12,3 +12,16 @@ export function logIf(text) {
     console.log(text);
   }
 }
+
+export function createIdentityMatrix(is3d) {
+  return new Float32Array(is3d ? [
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1,
+  ] : [
+    1, 0, 0,
+    0, 1, 0,
+    0, 0, 1,
+  ]);
+}

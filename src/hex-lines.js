@@ -1,4 +1,4 @@
-import {kLittleEndian, rgbaToUint32, logIf} from './utils.js';
+import {kLittleEndian, rgbaToUint32, logIf, createIdentityMatrix} from './utils.js';
 import {buildVertexShader, kFragmentShader} from './shaders.js';
 
 const kMaxFloat16Value = 65504;
@@ -9,7 +9,7 @@ export class HexLinesContext {
       background-color: black;
       padding: 0;
       margin: 0;
-      overflow: 0;
+      overflow: hidden;
     `;
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -33,6 +33,7 @@ export class HexLinesContext {
     this.canvas = canvas;
     this.pixelSize = pixelSize;
     this.is3d = is3d;
+    this.transformMatrix = createIdentityMatrix(this.is3d);
 
     this.canvas.width /= this.pixelSize;
     this.canvas.height /= this.pixelSize;
@@ -42,18 +43,6 @@ export class HexLinesContext {
       image-rendering: pixelated;
     `;
     this.gl = this.canvas.getContext('webgl2', {antialias});
-
-    this.localTransformMatrix = new Float32Array(this.is3d ? [
-      1, 0, 0, 0,
-      0, 1, 0, 0,
-      0, 0, 1, 0,
-      0, 0, 0, 1,
-    ] : [
-      1, 0, 0,
-      0, 1, 0,
-      0, 0, 1,
-    ]);
-    this.globalTransformMatrix = new Float32Array(this.localTransformMatrix);
 
     const vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
     this.gl.shaderSource(vertexShader, buildVertexShader({is3d: this.is3d}));
@@ -119,6 +108,7 @@ class HexLines  {
     this.is3d = this.hexLinesContext.is3d;
     this.gl = this.hexLinesContext.gl;
     this.bytesPerHexPoint = (this.is3d ? 5 : 4) * 4;
+    this.transformMatrix = createIdentityMatrix(this.is3d);
     this.vertexArray = this.gl.createVertexArray();
     this.gl.bindVertexArray(this.vertexArray);
     this.buffer = new ArrayBuffer();
@@ -239,12 +229,12 @@ class HexLines  {
     this.gl[this.is3d ? 'uniformMatrix4fv' : 'uniformMatrix3fv'](
       this.hexLinesContext.uniformLocations.localTransform,
       this.gl.FALSE,
-      this.hexLinesContext.localTransformMatrix,
+      this.transformMatrix,
     );
     this.gl[this.is3d ? 'uniformMatrix4fv' : 'uniformMatrix3fv'](
       this.hexLinesContext.uniformLocations.globalTransform,
       this.gl.FALSE,
-      this.hexLinesContext.globalTransformMatrix,
+      this.hexLinesContext.transformMatrix,
     );
     this.gl.drawArraysInstanced(this.gl.TRIANGLES, 0, 18, this.length - 1);
   }
