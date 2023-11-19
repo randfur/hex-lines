@@ -5,8 +5,8 @@ precision mediump float;
 uniform float width;
 uniform float height;
 uniform float pixelSize;
-uniform mat${3 + is3d} transform;
-uniform mat${3 + is3d} cameraTransform;
+uniform mat${3 + is3d} localTransform;
+uniform mat${3 + is3d} globalTransform;
 ${is3d ? `
 uniform float zMin;
 uniform float zMax;
@@ -110,8 +110,8 @@ vec4 rgbaToColour(uint rgba) {
 void main() {
   HexLineVertex hexLineVertex = kHexLineVertices[gl_VertexID];
 
-  vec${3 + is3d} startTransformedPosition = vec${3 + is3d}(startPosition, 1) * transform * cameraTransform;
-  vec${3 + is3d} endTransformedPosition = vec${3 + is3d}(endPosition, 1) * transform * cameraTransform;
+  vec${3 + is3d} startTransformedPosition = globalTransform * localTransform * vec${3 + is3d}(startPosition, 1);
+  vec${3 + is3d} endTransformedPosition = globalTransform * localTransform * vec${3 + is3d}(endPosition, 1);
   vec${3 + is3d} transformedPosition = mix(startTransformedPosition, endTransformedPosition, hexLineVertex.progress);
 
   ${is3d ? `

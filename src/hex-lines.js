@@ -43,6 +43,18 @@ export class HexLinesContext {
     `;
     this.gl = this.canvas.getContext('webgl2', {antialias});
 
+    this.localTransformMatrix = new Float32Array(this.is3d ? [
+      1, 0, 0, 0,
+      0, 1, 0, 0,
+      0, 0, 1, 0,
+      0, 0, 0, 1,
+    ] : [
+      1, 0, 0,
+      0, 1, 0,
+      0, 0, 1,
+    ]);
+    this.globalTransformMatrix = new Float32Array(this.localTransformMatrix);
+
     const vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
     this.gl.shaderSource(vertexShader, buildVertexShader({is3d: this.is3d}));
     this.gl.compileShader(vertexShader);
@@ -69,8 +81,8 @@ export class HexLinesContext {
       'width',
       'height',
       'pixelSize',
-      'transform',
-      'cameraTransform',
+      'localTransform',
+      'globalTransform',
       ...(this.is3d ? [
         'zMin',
         'zMax',
@@ -85,18 +97,6 @@ export class HexLinesContext {
       this.gl.uniform1f(this.uniformLocations.zMax, zMax);
       this.gl.uniform1f(this.uniformLocations.zDiv, zDiv);
     }
-    const identityMatrix = new Float32Array(this.is3d ? [
-      1, 0, 0, 0,
-      0, 1, 0, 0,
-      0, 0, 1, 0,
-      0, 0, 0, 1,
-    ] : [
-      1, 0, 0,
-      0, 1, 0,
-      0, 0, 1,
-    ]);
-    this.gl[`uniformMatrix${3 + this.is3d}fv`](this.uniformLocations.transform, this.gl.FALSE, identityMatrix);
-    this.gl[`uniformMatrix${3 + this.is3d}fv`](this.uniformLocations.cameraTransform, this.gl.FALSE, identityMatrix);
 
     this.attributeLocations = Object.fromEntries([
       'startPosition',
@@ -236,6 +236,16 @@ class HexLines  {
       this.gl.bufferData(this.gl.ARRAY_BUFFER, this.dataView, this.gl.DYNAMIC_DRAW, 0, this.length * this.bytesPerHexPoint);
       this.dirty = false;
     }
+    this.gl[this.is3d ? 'uniformMatrix4fv' : 'uniformMatrix3fv'](
+      this.hexLinesContext.uniformLocations.localTransform,
+      this.gl.FALSE,
+      this.hexLinesContext.localTransformMatrix,
+    );
+    this.gl[this.is3d ? 'uniformMatrix4fv' : 'uniformMatrix3fv'](
+      this.hexLinesContext.uniformLocations.globalTransform,
+      this.gl.FALSE,
+      this.hexLinesContext.globalTransformMatrix,
+    );
     this.gl.drawArraysInstanced(this.gl.TRIANGLES, 0, 18, this.length - 1);
   }
 

@@ -1,3 +1,11 @@
+# 2023-11-19
+- Exposed transform and cameraTransform matrices on HexLinesContext.
+  - Matrices are now set on every draw call.
+  - Moved multiplication to the left of the position.
+  - Still working out whether this works as expected or not.
+  - Should rename them to worldTransform and modelTransform.
+    - Done.
+
 # 2023-11-17
 - Halved the dot angle increment per instance, more pronounced now.
 
