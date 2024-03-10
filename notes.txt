@@ -1,3 +1,167 @@
+# 2024-03-10
+- Efficient alpha and pixelSize drawing algorithm:
+  - Difficult to perform good reuse to optimise the common cases to avoid redundant texture buffers.
+  - If alpha and pixelSize is always 1 then should be rendering directly into canvas.
+    - This might be a bit too complex to be worth it.
+    - Going to go with always having a pixelation pass when rendering to the canvas.
+  - Possible buffer data structure: {
+      mergeTarget: {
+        buffer,
+      },
+      pixelationTarget: {
+        buffer,
+        pixelSize,
+      },
+    }
+  - Merge target is always pixel size 1.
+    - Alpha transparency forces pixelisation.
+    - Could be more optimal but probably fine.
+    - Having pixelSize on the merge target is very complex to manage.
+  - Initial draw values: {
+      mergeTarget: {
+        buffer: canvas,
+      },
+      pixelationTarget: {
+        buffer: null,
+        pixelSize: null,
+      },
+    };
+    - GroupDrawing:
+      - Alpha < 1:
+        - Flush pixelation target to outer merge target.
+        - Start inner merge target as null.
+        - Nested draw values: {
+            mergeTarget: {
+              buffer: null,
+            },
+            pixelationTarget,
+          };
+        - If outer merge target:
+          - Flush inner merge target || pixelation target to outer merge target.
+        - Else:
+          - Set outer merge target to inner merge target.
+      - Alpha === 1:
+        - Pass draw values through unchanged.
+    - HexLinesDrawing:
+      - If pixelation target pixel size doesn't match hex lines drawing pixel size:
+        - Flush pixelation target to merge target, creating one if need be.
+      - Draw into pixelation target.
+
+# 2024-03-09
+- Drawing layers:
+  - New drawing object.
+  - Renders to an intermediate buffer.
+  - Renders that buffer onto the main canvas with a given pixelation and transparency.
+  - Remove the A part of RGBA in colour.
+  - Pixelation:
+    - Intermediate buffer can probably be the same size as the screen.
+    - May need to pick where to render in the intermediate buffer based on screen translation.
+    - Probably just pretend the intermediate buffer is smaller based on pixelation.
+    - Allowing mixed pixelation will be good for certain depth effects as well as mixing in more high resolution text.
+  - Need to consider how the animation format will work with draw layers now.
+  - Drawing layers take hex lines to draw.
+    - Hex lines can be shared across layers and drawn multiple times.
+      - They represent a buffer contents.
+    - Drawing layers need to redraw their hex lines each frame? Not sure.
+- Rethinking API:
+  - A draw item is either:
+    - A hexLines with pixelSize and transform.
+    - An opacity group of draw items with a given alpha.
+  - Opacity can nest but pixelSize and transform cannot.
+    - Maybe let transforms nest for convenience?
+  - API:
+    - interface HexLinesContext {
+        ...
+        createHexLinesBuffer(hexPoints);
+        draw(drawing: GroupDrawing | HexLinesDrawing);
+      }
+    - class HexLineDrawing {
+        constructor(hexLinesBuffer, pixelSize?, transform?);
+      }
+    - class GroupDrawing {
+        constructor(drawings: Array<GroupDrawing | HexLineDrawing>, alpha?, transform?);
+      }
+- Drawing algorithm:
+  - Goal:
+    - If opacity and differing pixelSizes aren't used then it should have no extra intermediate texture costs.
+  - Inefficient basic approach:
+    function draw(drawing, target=null, outerTransform=null) {
+      if (drawing instanceof GroupDrawing) {
+        drawGroup(drawing, target, outerTransform);
+      } else {
+        drawHexLines(drawing, target, outerTransform);
+      }
+    }
+
+    function drawGroup(groupDrawing, targetFrameBuffer, outerTransform) {
+      const intermediateFrameBuffer = createFrameBuffer();
+      const transform = multiply(outerTransform, groupDrawing.transform);
+      for (const drawing of groupDrawing.drawings) {
+        draw(drawing, intermediateFrameBuffer, transform);
+      }
+      blitTextureWithAlpha(
+        intermediateFrameBuffer.texture,
+        targetFrameBuffer,
+        groupDrawing.alpha,
+      );
+    }
+
+    function drawHexLines(hexLinesDrawing, targetFrameBuffer, outerTransform) {
+      const intermediateFrameBuffer = createFrameBuffer();
+      const transform = multiply(outerTransform, hexLinesDrawing.transform);
+      // Draw hexLines into intermediateFrameBuffer using transform.
+      blitTextureWithPixelSize(
+        intermediateFrameBuffer.texture,
+        targetFrameBuffer,
+        hexLinesDrawing.pixelSize,
+      );
+    }
+  - Can probably store the pixelSize intended for the intermediate frame buffers and reuse them if they match.
+  - GroupDrawings with alpha 1 can render directly onto the target frame buffer.
+  - Optimised approach:
+    - Ideally, if the pixelSize is the same for every HexLinesDrawing, renders everything to that smaller canvas size for everything including the opacity layers.
+    - As soon as a different pixelSize is seen it'll have to upgrade to pixelSize 1 to combine them.
+    - Combining only happens in a GroupDrawing so most of the logic would probably live in there.
+    - Attempt (ignoring transform):
+      function draw(drawing) {
+        const pixelationBuffer = {
+          lastPixelSize: null,
+          buffer: createBuffer(),
+        };
+        const alphaBuffer = drawDrawing(drawing, /*alphaBuffer=*/null, pixelationBuffer);
+        drawIntoCanvas(alphaBuffer, pixelationBuffer);
+      }
+
+      function drawDrawing(drawing, alphaBuffer, pixelationBuffer) {
+        if (drawing instanceof GroupDrawing) {
+          return drawGroup(drawing, alphaBuffer, pixelationBuffer);
+        }
+        return drawHexLines(drawing, alphaBuffer, pixelationBuffer);
+      }
+
+      function drawGroup(groupDrawing, outerAlphaBuffer, pixelationBuffer) {
+        if (groupDrawing.alpha < 1) {
+          outerAlphaBuffer = flushPixelationBuffer(pixelationBuffer, outerAlphaBuffer);
+        }
+        const innerAlphaBuffer = groupDrawing.alpha < 1 ? null : outerAlphaBuffer;
+        for (const drawing of groupDrawing.drawings) {
+          innerAlphaBuffer = draw(drawing, innerAlphaBuffer, pixelationBuffer);
+        }
+        if (groupDrawing.alpha < 1) {
+          outerAlphaBuffer = flushOpacity(
+            innerAlphaBuffer,
+            pixelationBuffer,
+            outerAlphaBuffer,
+          );
+        }
+        return outerAlphaBuffer;
+      }
+
+      function drawHexLines(hexLinesDrawing, alphaBuffer, pixelationBuffer) {
+      }
+
+      // WIP unfinished, hard, going to bed.
+
 # 2023-11-19
 - Exposed transform and cameraTransform matrices on HexLinesContext.
   - Matrices are now set on every draw call.
