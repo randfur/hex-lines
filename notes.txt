@@ -1,3 +1,34 @@
+# 2024-04-28
+- How to translate transparent-pixelation-rendering into WebGL.
+  - RenderBuffers are efficient for offscreen rendering, more efficient than textures supposedly.
+  - Can blit render buffers into other render buffers.
+    - Can do nearest neighbour resizing and blending.
+    - Can apply opacity using the blend colour constant which can be referenced in blend func factors.
+  - drawImage():
+    - Do the regular rendering.
+  - drawGroup():
+    - if opacity or greater pixelation:
+      - Add to render buffer stack.
+      - Draw children into it.
+      - Set up opacity in blending.
+      - Blit top of stack to the one below it.
+      - Pop stack.
+    - else:
+      - Draw children into current stack.
+- Depth information.
+  - Render frames can hold depth information.
+  - Can't keep depth testing when blitting one render buffer onto another.
+  - Need to use textures instead and do the depth test manually in the shader.
+  - Not sure what 3D support is going to look like with this group drawing scheme and how it interacts with opacity.
+    - Possibly any group with opacity ceases to have depth testing.
+    - But what will get written into the depth buffer when an opaque group has been drawn?
+    - Maybe try to preserve depth testing and copying over.
+
+# 2024-04-08
+- Got proof of concept in [transparent-pixelation-rendering](https://github.com/randfur/experiments/tree/main/2024/transparent-pixelation-rendering) experiment.
+  - Changed pixelation to be at a GroupDrawing level rather than a HexLinesDrawing level.
+  - Optimisation now much simpler than previously expected.
+
 # 2024-03-10
 - Efficient alpha and pixelSize drawing algorithm:
   - Difficult to perform good reuse to optimise the common cases to avoid redundant texture buffers.
@@ -159,8 +190,7 @@
 
       function drawHexLines(hexLinesDrawing, alphaBuffer, pixelationBuffer) {
       }
-
-      // WIP unfinished, hard, going to bed.
+      // WIP unfinished.
 
 # 2023-11-19
 - Exposed transform and cameraTransform matrices on HexLinesContext.
