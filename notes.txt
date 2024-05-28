@@ -1,3 +1,50 @@
+# 2024-05-29:
+- 3D prototype:
+  - Implemented in: https://github.com/randfur/experiments/blob/main/2024/translucent-triangle/
+  - Does opacity and pixelation with depth testing.
+  - Performance probably won't scale too well due to needing texture passes with each layer.
+  - Still some questions around how the depth testing is going to work with a tree of rendering.
+    - Needs implementation.
+  - Leaving 3D for now to do 2D.
+    - 2D much simpler and is main goal at the moment.
+      - Animation editor.
+- Interfaces:
+  - Split 2D and 3D interfaces up.
+  - 2D/3D hex line shader can still be shared.
+  - 2d and 3d directories for hex-lines-2d.js and hex-lines-3d.js.
+- Triangulation:
+  - Would be nice to have polygon rendering to fill in sections.
+  - Can render it with an optional gradient.
+  - Not sure how to turn a sequence of points into triangles that make up the polygon.
+  - Will have to be a separate prototype.
+2D:
+  - Classes:
+    - Context.
+    - Group drawing.
+    - Image drawing.
+    - Hex lines buffer.
+
+# 2024-05-06
+- Considering 3D:
+  - How to handle opacity/pixelation with depth buffers.
+  - Could continue to do depth buffering with broken opacity support across layers.
+  - Up to the user to render back to front to have correct opacity.
+  - Would be neat if existing pixel had transparency with close depth and blend it over drawn pixel with further away depth.
+    - Needs access to the existing pixel for that, not the case.
+    - Sounds like a texture can be an input and a render target at the same time.
+    - Not ideal performance wise though, reading and writing to the texture needs synchronisation overhead.
+    - Better to render to a separate texture target.
+    - Should try in a test bed.
+  - Alternate 3D opacity idea:
+    - Render all opaque drawings first to build depth buffer.
+    - Render all transparent layers separately and blit with depth testing but no writing.
+    - Ordering might be broken but should be mostly fine.
+    - Rendering the transparent layers will be a recursive operation.
+  - Ordering:
+    - Each drawing can provide an origin (which will be transformed by its transform hierarchy).
+    - Each draw group can specify whether to depth sort the origins of its children.
+    - Depth sorting of transparent things can happen within a draw group.
+
 # 2024-04-28
 - How to translate transparent-pixelation-rendering into WebGL.
   - RenderBuffers are efficient for offscreen rendering, more efficient than textures supposedly.
