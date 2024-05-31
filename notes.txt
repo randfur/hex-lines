@@ -1,3 +1,23 @@
+# 2024-05-31:
+- Implementing 2D hex-lines.
+- Naming:
+  - Not sure whether to stick "2d" in the name of every class.
+  - Will do without 2d name for now.
+  - See how it is when there's a 3D implementation.
+  - Don't really expect the two to be mixed.
+- Reimplementing line buffer.
+  - Omitting alpha in colour.
+  - Not encoding as u32 this time, hoping to read it out as vec3.
+  - Slightly different data entry API.
+    - Dedicated dot surface, user doesn't deal with nulls.
+- Reimplementing shaders.
+  - Reconsidering hexagon triangles.
+  - Found a way to use triangle list.
+  - Needs degenerate triangle to split up the line segments.
+    - Just repeat last point to make 0 area triangle.
+  - Will find out if it works.
+  - Implemented first pass of vertex shader, needs more stuff hooked up to find out if it works.
+
 # 2024-05-29:
 - 3D prototype:
   - Implemented in: https://github.com/randfur/experiments/blob/main/2024/translucent-triangle/
