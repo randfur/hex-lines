@@ -17,6 +17,15 @@
     - Just repeat last point to make 0 area triangle.
   - Will find out if it works.
   - Implemented first pass of vertex shader, needs more stuff hooked up to find out if it works.
+  - Had some problems with passing the u8s to a vec3 in the shader, turns out it just simply because the vertex buffer hadn't been uploaded to the GPU.
+  - Got a basic render working!
+  - And with half as many vertex points as before to produce the same number of triangles.
+- Next:
+  - Add pixelation.
+  - Add transformations.
+  - Add opacity.
+  - Add nested group drawings.
+    - Add render buffer management.
 
 # 2024-05-29:
 - 3D prototype:

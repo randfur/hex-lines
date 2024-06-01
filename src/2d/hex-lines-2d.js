@@ -7,6 +7,7 @@ const kPointByteLength = (
   1 + // r: u8
   1 + // g: u8
   1 + // b: u8
+  1 + // padding
   0
 );
 
@@ -28,13 +29,15 @@ export class HexLinesContext {
     document.body.append(canvas);
 
     const gl = canvas.getContext('webgl2');
-    const context = new HexLinesContext(gl);
+    const context = new HexLinesContext(gl, width, height);
 
     return {context, width, height};
   }
 
-  constructor(gl) {
+  constructor(gl, width, height) {
     this.gl = gl;
+    this.width = width;
+    this.height = height;
   }
 
   createLineBuffer() {
@@ -57,7 +60,14 @@ export class LineDrawing {
   }
 
   draw(context) {
-    LineProgram.draw(context.gl);
+    this.lineBuffer.ensureUploaded();
+    LineProgram.draw(
+      context.gl,
+      this.lineBuffer.glBuffer,
+      context.width,
+      context.height,
+      Math.floor(this.lineBuffer.usedByteLength / kPointByteLength),
+    );
   }
 }
 
@@ -145,7 +155,7 @@ class LineBuffer {
     this.dirty = true;
   }
 
-  upload() {
+  ensureUploaded() {
     if (!this.dirty) {
       return;
     }
@@ -160,9 +170,7 @@ class LineBuffer {
 }
 
 class LineProgram {
-  static glProgram = null;
-
-  static draw(gl, glBuffer, width, height) {
+  static draw(gl, glBuffer, width, height, pointCount) {
     if (!this.glProgram) {
       this.glProgram = gl.createProgram();
       const vertexShader = gl.createShader(gl.VERTEX_SHADER);
@@ -180,7 +188,7 @@ class LineProgram {
         in float toSize;
         in vec3 toColour;
 
-        out vec3 colour;
+        out vec3 vertexColour;
 
         struct Point {
           float progress;
@@ -189,21 +197,21 @@ class LineProgram {
 
         const Point points[] = Point[9](
           // First half hexagon.
-          Point(0.0, vec2(-sqrt(3.0) / 2.0, 0.5)),
-          Point(0.0, vec2(-sqrt(3.0) / 2.0, -0.5)),
-          Point(0.0, vec2(0.0, 1.0)),
-          Point(0.0, vec2(0.0, -1.0)),
+          Point(0.0, vec2(-sqrt(3.0) / 4.0, 0.25)),
+          Point(0.0, vec2(-sqrt(3.0) / 4.0, -0.25)),
+          Point(0.0, vec2(0.0, 0.5)),
+          Point(0.0, vec2(0.0, -0.5)),
 
           // Bridge.
-          Point(1.0, vec2(0.0, 1.0)),
-          Point(1.0, vec2(0.0, -1.0)),
+          Point(1.0, vec2(0.0, 0.5)),
+          Point(1.0, vec2(0.0, -0.5)),
 
           // Second half hexagon.
-          Point(1.0, vec2(sqrt(3.0) / 2.0, 0.5)),
-          Point(1.0, vec2(sqrt(3.0) / 2.0, -0.5)),
+          Point(1.0, vec2(sqrt(3.0) / 4.0, 0.25)),
+          Point(1.0, vec2(sqrt(3.0) / 4.0, -0.25)),
 
           // Degenerate triangle.
-          Point(1.0, vec2(sqrt(3.0) / 2.0, -0.5))
+          Point(1.0, vec2(sqrt(3.0) / 4.0, -0.25))
         );
 
         vec2 rotate(vec2 v, vec2 r) {
@@ -248,16 +256,66 @@ class LineProgram {
           );
 
           gl_Position = vec4(
-            enabled * (position + offset) / vec2(width, height) / 2.0,
+            enabled * (position + offset) / (vec2(width, height) / 2.0),
             0,
             1
           );
 
-          colour = mix(fromColour, toColour, point.progress);
+          vertexColour = mix(fromColour, toColour, point.progress) / 255.0;
         }
       `);
       gl.compileShader(vertexShader);
       logIf(gl.getShaderInfoLog(vertexShader));
+
+      const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+      gl.shaderSource(fragmentShader, `#version 300 es
+        precision mediump float;
+
+        in vec3 vertexColour;
+        out vec4 fragmentColour;
+
+        void main() {
+          fragmentColour = vec4(vertexColour, 1.0);
+        }
+      `);
+      gl.compileShader(fragmentShader);
+      logIf(gl.getShaderInfoLog(fragmentShader));
+
+      gl.attachShader(this.glProgram, vertexShader);
+      gl.attachShader(this.glProgram, fragmentShader);
+      gl.linkProgram(this.glProgram);
+      logIf(gl.getProgramInfoLog(this.glProgram));
+
+      this.uniformLocation = {
+        width: gl.getUniformLocation(this.glProgram, 'width'),
+        height: gl.getUniformLocation(this.glProgram, 'height'),
+      };
+
+      gl.useProgram(this.glProgram);
+      gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
+
+      this.attributeLocation = {};
+      for (const attribute of ['fromPosition', 'fromSize', 'fromColour', 'toPosition', 'toSize', 'toColour']) {
+        const location = gl.getAttribLocation(this.glProgram, attribute);
+        this.attributeLocation[attribute] = location;
+        gl.enableVertexAttribArray(location);
+        gl.vertexAttribDivisor(location, 1);
+      };
     }
+
+    gl.useProgram(this.glProgram);
+    gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
+
+    gl.vertexAttribPointer(this.attributeLocation.fromPosition, 2, gl.FLOAT, gl.FALSE, kPointByteLength, 0);
+    gl.vertexAttribPointer(this.attributeLocation.fromSize, 1, gl.FLOAT, gl.FALSE, kPointByteLength, 8);
+    gl.vertexAttribPointer(this.attributeLocation.fromColour, 3, gl.UNSIGNED_BYTE, gl.TRUE, kPointByteLength, 12);
+    gl.vertexAttribPointer(this.attributeLocation.toPosition, 2, gl.FLOAT, gl.FALSE, kPointByteLength, 16);
+    gl.vertexAttribPointer(this.attributeLocation.toSize, 1, gl.FLOAT, gl.FALSE, kPointByteLength, 24);
+    gl.vertexAttribPointer(this.attributeLocation.toColour, 3, gl.UNSIGNED_BYTE, gl.TRUE, kPointByteLength, 28);
+
+    gl.uniform1f(this.uniformLocation.width, width);
+    gl.uniform1f(this.uniformLocation.height, height);
+
+    gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 9, pointCount - 1);
   }
 }
