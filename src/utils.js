@@ -25,3 +25,44 @@ export function createIdentityMatrix(is3d) {
     0, 0, 1,
   ]);
 }
+
+export class Pool {
+  constructor(create) {
+    this.create = create;
+    this.buffer = [];
+    this.usedCount = 0;
+  }
+
+  aquire() {
+    if (this.usedCount === this.buffer.length) {
+      this.buffer.push(this.create());
+    }
+    return this.buffer[this.usedCount++];
+  }
+
+  release() {
+    --this.usedCount;
+  }
+
+  releaseAll() {
+    this.usedCount = 0;
+  }
+}
+
+export class PoolMap {
+  constructor(create) {
+    this.create = create;
+    this.poolMap = new Map();
+  }
+
+  aquire(key) {
+    if (!this.poolMap.has(key)) {
+      this.poolMap.set(key, new Pool(() => this.create(key)));
+    }
+    return this.poolMap.get(key).aquire();
+  }
+
+  release(key) {
+    return this.poolMap.get(key).release();
+  }
+}
