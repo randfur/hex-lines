@@ -4,9 +4,7 @@ export class TextureProgram {
   static draw(gl, glTexture, opacity) {
     if (!this.program) {
       gl.enable(gl.BLEND);
-      // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-      gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
-      // gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
       this.program = gl.createProgram();
 
@@ -44,6 +42,7 @@ export class TextureProgram {
         void main() {
           colour = texture(texture2D, uv);
           colour.a *= opacity;
+          colour.rgb *= colour.a;
         }
       `);
       gl.compileShader(fragmentShader);

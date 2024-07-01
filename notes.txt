@@ -1,3 +1,11 @@
+# 2024-07-01:
+- Blending:
+  - Experimented in experiments/2024/image-compositing.
+  - Had conversations with Claude-3.5 about premultiplied colour blending.
+    - https://claude.ai/chat/7e6e4511-f3cf-4076-82bb-dfaae231ad3b
+  - Added premultiplication to the source colour.
+  - Seems to work! Needs more extensive testing.
+
 # 2024-06-03:
 - Added pixelation.
   - Created a PoolMap.
