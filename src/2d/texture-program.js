@@ -40,9 +40,8 @@ export class TextureProgram {
         out vec4 colour;
 
         void main() {
-          colour = texture(texture2D, uv);
-          colour.a *= opacity;
-          colour.rgb *= colour.a;
+          // Premultiply alpha.
+          colour = texture(texture2D, uv) * opacity;
         }
       `);
       gl.compileShader(fragmentShader);
