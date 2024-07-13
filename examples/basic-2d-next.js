@@ -40,7 +40,7 @@ async function main() {
   })();
 
   const drawing = new GroupDrawing({
-    pixelSize: 4,
+    pixelSize: 1,
     // opacity: 0.5,
     children: [
       stars,
@@ -48,7 +48,11 @@ async function main() {
     ],
   });
 
-  hexLines2d.draw(drawing);
+
+  while (true) {
+    await new Promise(requestAnimationFrame);
+    hexLines2d.draw(drawing);
+  }
 }
 
 function range(n) {

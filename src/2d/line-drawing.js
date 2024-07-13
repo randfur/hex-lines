@@ -6,7 +6,7 @@ export class LineDrawing {
     this.lineBuffer = lineBuffer;
   }
 
-  draw(gl, framebufferPoolMap, targetFramebuffer, pixelSize) {
+  draw(gl, framebufferPoolMap, mat3Pool, targetFramebuffer, pixelSize, transform) {
     this.lineBuffer.ensureUploaded();
     targetFramebuffer.drawTo();
     LineProgram.draw(
@@ -16,6 +16,7 @@ export class LineDrawing {
       targetFramebuffer.width,
       targetFramebuffer.height,
       pixelSize,
+      transform,
     );
   }
 }

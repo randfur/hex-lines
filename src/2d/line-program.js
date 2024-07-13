@@ -2,7 +2,7 @@ import {logIf} from '../utils.js';
 import {kPointByteLength} from './utils.js';
 
 export class LineProgram {
-  static draw(gl, glBuffer, pointCount, width, height, pixelSize) {
+  static draw(gl, glBuffer, pointCount, width, height, pixelSize, transform) {
     if (!this.glProgram) {
       this.glProgram = gl.createProgram();
       const vertexShader = gl.createShader(gl.VERTEX_SHADER);
@@ -12,6 +12,7 @@ export class LineProgram {
         uniform float width;
         uniform float height;
         uniform float pixelSize;
+        uniform mat3 transform;
 
         in vec2 fromPosition;
         in float fromSize;
@@ -28,7 +29,7 @@ export class LineProgram {
           vec2 offset;
         };
 
-        const Point points[] = Point[9](
+        const Point points[] = Point[8](
           // First half hexagon.
           Point(0.0, vec2(-sqrt(3.0) / 4.0, 0.25)),
           Point(0.0, vec2(-sqrt(3.0) / 4.0, -0.25)),
@@ -41,9 +42,6 @@ export class LineProgram {
 
           // Second half hexagon.
           Point(1.0, vec2(sqrt(3.0) / 4.0, 0.25)),
-          Point(1.0, vec2(sqrt(3.0) / 4.0, -0.25)),
-
-          // Degenerate triangle.
           Point(1.0, vec2(sqrt(3.0) / 4.0, -0.25))
         );
 
@@ -76,15 +74,19 @@ export class LineProgram {
             : normalize(to - from);
         }
 
+        vec2 applyTransform(vec2 position) {
+          return (transform * vec3(position, 1.0)).xy;
+        }
+
         void main() {
           Point point = points[gl_VertexID];
           float enabled = float(fromSize > 0.0 && toSize > 0.0);
-          vec2 position = mix(fromPosition, toPosition, point.progress);
+          vec2 position = applyTransform(mix(fromPosition, toPosition, point.progress));
           vec2 offset = (
             mix(fromSize, toSize, point.progress) *
             rotate(
               point.offset,
-              getRotation(fromPosition, toPosition)
+              getRotation(applyTransform(fromPosition), applyTransform(toPosition))
             )
           );
 
@@ -123,6 +125,7 @@ export class LineProgram {
         width: gl.getUniformLocation(this.glProgram, 'width'),
         height: gl.getUniformLocation(this.glProgram, 'height'),
         pixelSize: gl.getUniformLocation(this.glProgram, 'pixelSize'),
+        transform: gl.getUniformLocation(this.glProgram, 'transform'),
       };
 
       gl.useProgram(this.glProgram);
@@ -151,6 +154,28 @@ export class LineProgram {
     gl.uniform1f(this.uniformLocation.height, height);
     gl.uniform1f(this.uniformLocation.pixelSize, pixelSize);
 
-    gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 9, pointCount - 1);
+    const angle = Math.PI * 2 * Math.sin(performance.now() / 5000);
+    const c = Math.cos(angle)
+    const d = -Math.sin(angle)
+    const e = 0
+
+    const f = Math.sin(angle)
+    const g = Math.cos(angle)
+    const h = 0
+
+    const i = 0
+    const j = 0
+    const k = 1
+
+    transform = new Float32Array([
+      c, f, i,
+      d, g, j,
+      e, h, k,
+    ]);
+    console.log(transform);
+
+    gl.uniformMatrix3fv(this.uniformLocation.transform, /*transpose=*/false, transform);
+
+    gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 8, pointCount - 1);
   }
 }

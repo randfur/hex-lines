@@ -66,3 +66,7 @@ export class PoolMap {
     return this.poolMap.get(key).release();
   }
 }
+
+export function multiplyMat3(left, right, out) {
+
+}

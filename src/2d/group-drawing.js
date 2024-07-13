@@ -1,16 +1,27 @@
 import {TextureProgram} from './texture-program.js';
+import {multiplyMat3} from '../utils.js';
 
 export class GroupDrawing {
-  constructor({pixelSize=1, opacity=1, children}) {
+  constructor({pixelSize=1, opacity=1, transform=null, children}) {
     this.pixelSize = pixelSize;
     this.opacity = opacity;
+    this.transform = transform;
     this.children = children;
   }
 
-  draw(gl, framebufferPoolMap, targetFramebuffer, targetPixelSize) {
+  draw(gl, framebufferPoolMap, mat3Pool, targetFramebuffer, targetPixelSize, transform) {
+    const composedTransform = mat3Pool.aquire();
+    // multiplyMat3(transform, this.transform, composedTransform);
     if (this.opacity === 1 && this.pixelSize <= targetPixelSize) {
       for (const child of this.children) {
-        child.draw(gl, framebufferPoolMap, targetFramebuffer, targetPixelSize);
+        child.draw(
+          gl,
+          framebufferPoolMap,
+          mat3Pool,
+          targetFramebuffer,
+          targetPixelSize,
+          composedTransform,
+        );
       }
       return;
     }
@@ -20,7 +31,14 @@ export class GroupDrawing {
     temporaryFramebuffer.drawTo();
     gl.clear(gl.COLOR_BUFFER_BIT);
     for (const child of this.children) {
-      child.draw(gl, framebufferPoolMap, temporaryFramebuffer, effectivePixelSize);
+      child.draw(
+        gl,
+        framebufferPoolMap,
+        mat3Pool,
+        temporaryFramebuffer,
+        effectivePixelSize,
+        composedTransform,
+      );
     }
     targetFramebuffer.drawTo();
     TextureProgram.draw(gl, temporaryFramebuffer.glTexture, this.opacity);

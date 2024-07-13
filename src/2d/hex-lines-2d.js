@@ -1,5 +1,5 @@
 import {LineBuffer} from './line-buffer.js';
-import {PoolMap} from '../utils.js';
+import {Pool, PoolMap} from '../utils.js';
 import {Framebuffer} from './framebuffer.js';
 
 export class HexLines2d {
@@ -36,6 +36,7 @@ export class HexLines2d {
         Math.floor(this.height / pixelSize),
       )
     );
+    this.mat3Pool = new Pool(() => new Float32Array(9));
     this.canvasFramebuffer = Framebuffer.createCanvasBacking(this.gl, this.width, this.height);
   }
 
@@ -49,6 +50,7 @@ export class HexLines2d {
   }
 
   draw(drawing) {
-    drawing.draw(this.gl, this.framebufferPoolMap, this.canvasFramebuffer, 1);
+    drawing.draw(this.gl, this.framebufferPoolMap, this.mat3Pool, this.canvasFramebuffer, 1);
+    this.mat3Pool.releaseAll();
   }
 }

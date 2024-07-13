@@ -1,3 +1,11 @@
+# 2024-07-13
+- Should line drawings have transform?
+  - Start with just on group drawings for now.
+  - Added transform matrix to line drawing program.
+    - Using a hard coded rotation based on time for now, need to do transfrom stacking.
+    - Confirmed that the uniform matrix expects the numbers in column major order.
+    - Will probably do a transpose in the shader to avoid having column major matrices CPU side.
+
 # 2024-07-03
 - Fixed alpha blending between textures, was multiplying the original alpha in when it was already premultiplied in causing it to double and darken all the colours.
 
