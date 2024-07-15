@@ -1,5 +1,5 @@
 import {logIf} from '../utils.js';
-import {kPointByteLength} from './utils.js';
+import {kPointByteLength, identityMat3} from './utils.js';
 
 export class LineProgram {
   static draw(gl, glBuffer, pointCount, width, height, pixelSize, transform) {
@@ -75,7 +75,7 @@ export class LineProgram {
         }
 
         vec2 applyTransform(vec2 position) {
-          return (transform * vec3(position, 1.0)).xy;
+          return (transpose(transform) * vec3(position, 1.0)).xy;
         }
 
         void main() {
@@ -154,27 +154,7 @@ export class LineProgram {
     gl.uniform1f(this.uniformLocation.height, height);
     gl.uniform1f(this.uniformLocation.pixelSize, pixelSize);
 
-    const angle = Math.PI * 2 * Math.sin(performance.now() / 5000);
-    const c = Math.cos(angle)
-    const d = -Math.sin(angle)
-    const e = 0
-
-    const f = Math.sin(angle)
-    const g = Math.cos(angle)
-    const h = 0
-
-    const i = 0
-    const j = 0
-    const k = 1
-
-    transform = new Float32Array([
-      c, f, i,
-      d, g, j,
-      e, h, k,
-    ]);
-    console.log(transform);
-
-    gl.uniformMatrix3fv(this.uniformLocation.transform, /*transpose=*/false, transform);
+    gl.uniformMatrix3fv(this.uniformLocation.transform, /*transpose=*/false, transform ?? identityMat3);
 
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 8, pointCount - 1);
   }

@@ -67,6 +67,3 @@ export class PoolMap {
   }
 }
 
-export function multiplyMat3(left, right, out) {
-
-}

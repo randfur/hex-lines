@@ -1,9 +1,10 @@
 import {LineProgram} from './line-program.js';
-import {kPointByteLength} from './utils.js';
+import {kPointByteLength, multiplyMaybeMat3} from './utils.js';
 
 export class LineDrawing {
-  constructor({lineBuffer}) {
+  constructor({lineBuffer, transform=null}) {
     this.lineBuffer = lineBuffer;
+    this.transform = transform;
   }
 
   draw(gl, framebufferPoolMap, mat3Pool, targetFramebuffer, pixelSize, transform) {
@@ -16,7 +17,7 @@ export class LineDrawing {
       targetFramebuffer.width,
       targetFramebuffer.height,
       pixelSize,
-      transform,
+      multiplyMaybeMat3(mat3Pool, transform, this.transform),
     );
   }
 }

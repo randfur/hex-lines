@@ -1,5 +1,5 @@
 import {TextureProgram} from './texture-program.js';
-import {multiplyMat3} from '../utils.js';
+import {multiplyMaybeMat3} from './utils.js';
 
 export class GroupDrawing {
   constructor({pixelSize=1, opacity=1, transform=null, children}) {
@@ -10,8 +10,8 @@ export class GroupDrawing {
   }
 
   draw(gl, framebufferPoolMap, mat3Pool, targetFramebuffer, targetPixelSize, transform) {
-    const composedTransform = mat3Pool.aquire();
-    // multiplyMat3(transform, this.transform, composedTransform);
+    const composedTransform = multiplyMaybeMat3(mat3Pool, transform, this.transform);
+
     if (this.opacity === 1 && this.pixelSize <= targetPixelSize) {
       for (const child of this.children) {
         child.draw(

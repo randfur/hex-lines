@@ -1,3 +1,10 @@
+# 2024-07-16
+- Transform.
+  - Plumbed through from API to program.
+  - Converted to row major with a transpose in the shader.
+  - Added multiply util function.
+  - Transform matricies appear to compose correctly.
+
 # 2024-07-13
 - Should line drawings have transform?
   - Start with just on group drawings for now.

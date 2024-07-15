@@ -40,7 +40,7 @@ async function main() {
   })();
 
   const drawing = new GroupDrawing({
-    pixelSize: 1,
+    pixelSize: 4,
     // opacity: 0.5,
     children: [
       stars,
@@ -51,6 +51,32 @@ async function main() {
 
   while (true) {
     await new Promise(requestAnimationFrame);
+
+    const angle = Math.PI * 2 * performance.now() / 5000;
+    const c = Math.cos(angle)
+    const d = -Math.sin(angle)
+    const e = 0
+
+    const f = Math.sin(angle)
+    const g = Math.cos(angle)
+    const h = 0
+
+    const i = 0
+    const j = 0
+    const k = 1
+
+    shape.transform = new Float32Array([
+      c, d, e,
+      f, g, h,
+      i, j, k,
+    ]);
+
+    drawing.transform = new Float32Array([
+      1, 0, Math.cos(performance.now() / 1000) * 200,
+      0, 1, Math.sin(performance.now() / 1000) * 200,
+      0, 0, 1,
+    ]);
+
     hexLines2d.draw(drawing);
   }
 }
