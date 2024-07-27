@@ -1,3 +1,6 @@
+# 2024-07-27
+- Put basic-2d-next demo stars into a circle.
+
 # 2024-07-16
 - Transform.
   - Plumbed through from API to program.

@@ -2,6 +2,8 @@ import {HexLines2d} from '../src/2d/hex-lines-2d.js';
 import {GroupDrawing} from '../src/2d/group-drawing.js';
 import {LineDrawing} from '../src/2d/line-drawing.js';
 
+const TAU = Math.PI * 2;
+
 async function main() {
   const {hexLines2d, width, height} = HexLines2d.setupFullPageCanvas();
 
@@ -9,8 +11,10 @@ async function main() {
     const lineBuffer = hexLines2d.createLineBuffer();
     lineBuffer.addDots(
       range(200).map(i => {
-        const x = (Math.random() - 0.5) * width;
-        const y = (Math.random() - 0.5) * height;
+        const radius = Math.random() * Math.max(width, height) / 2;
+        const angle = Math.random() * TAU;
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
         return {position: {x, y}, size: 20, colour: {r: 255, g: 255, b: 255}};
       }),
     );
@@ -41,7 +45,6 @@ async function main() {
 
   const drawing = new GroupDrawing({
     pixelSize: 4,
-    // opacity: 0.5,
     children: [
       stars,
       shape,
