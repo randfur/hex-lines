@@ -26,22 +26,22 @@ export class LineBuffer {
     this.dirty = true;
     let offset = this.usedByteLength;
     this.growUsage(dots.length * kPointByteLength * 3);
-    for (const {position: {x, y}, size, colour: {r, g, b}} of dots) {
+    for (const {position: {x, y}, size, angle, colour: {r, g, b}} of dots) {
       this.setPoint(offset, x, y, size, r, g, b);
       offset += kPointByteLength;
-      this.setPoint(offset, x, y, size, r, g, b);
+      this.setPoint(offset, x, y, angle, r, g, b);
       offset += kPointByteLength;
       this.setNull(offset);
       offset += kPointByteLength;
     }
   }
 
-  addDot({position: {x, y}, size, colour: {r, g, b}}) {
+  addDot({position: {x, y}, size, angle, colour: {r, g, b}}) {
     this.dirty = true;
     const offset = this.usedByteLength;
     this.growUsage(kPointByteLength * 3);
     this.setPoint(offset + kPointByteLength * 0, x, y, size, r, g, b);
-    this.setPoint(offset + kPointByteLength * 1, x, y, size, r, g, b);
+    this.setPoint(offset + kPointByteLength * 1, x, y, angle, r, g, b);
     this.setNull(offset + kPointByteLength * 2);
   }
 

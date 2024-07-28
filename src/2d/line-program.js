@@ -66,12 +66,7 @@ export class LineProgram {
         }
 
         vec2 getRotation(vec2 from, vec2 to) {
-          return from == to
-            ? vec2(
-                cos(float(gl_InstanceID) / 2.0),
-                sin(float(gl_InstanceID) / 2.0)
-              )
-            : normalize(to - from);
+          return normalize(to - from);
         }
 
         vec2 applyTransform(vec2 position) {
@@ -81,12 +76,27 @@ export class LineProgram {
         void main() {
           Point point = points[gl_VertexID];
           float enabled = float(fromSize > 0.0 && toSize > 0.0);
-          vec2 position = applyTransform(mix(fromPosition, toPosition, point.progress));
+          // When two points are at the same place treat it as a
+          // standalone dot and use the toSize as the angle of the dot.
+          bool dot = fromPosition == toPosition;
+          vec2 position = applyTransform(
+            mix(
+              fromPosition,
+              toPosition,
+              point.progress));
           vec2 offset = (
-            mix(fromSize, toSize, point.progress) *
+            mix(
+              fromSize,
+              dot ? fromSize : toSize,
+              point.progress)
+            *
             rotate(
               point.offset,
-              getRotation(applyTransform(fromPosition), applyTransform(toPosition))
+              dot
+              ? vec2(cos(toSize), sin(toSize))
+              : getRotation(
+                applyTransform(fromPosition),
+                applyTransform(toPosition))
             )
           );
 

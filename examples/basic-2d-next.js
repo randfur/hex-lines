@@ -10,12 +10,12 @@ async function main() {
   const stars = (() => {
     const lineBuffer = hexLines2d.createLineBuffer();
     lineBuffer.addDots(
-      range(200).map(i => {
+      range(2000).map(i => {
         const radius = Math.random() * Math.max(width, height) / 2;
         const angle = Math.random() * TAU;
         const x = Math.cos(angle) * radius;
         const y = Math.sin(angle) * radius;
-        return {position: {x, y}, size: 20, colour: {r: 255, g: 255, b: 255}};
+        return {position: {x, y}, size: 20, angle, colour: {r: 255, g: 255, b: 255}};
       }),
     );
     return new LineDrawing({lineBuffer});
