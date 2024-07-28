@@ -45,6 +45,23 @@ export class LineBuffer {
     this.setNull(offset + kPointByteLength * 2);
   }
 
+  addRawPointsData(pointsData) {
+    const offset = this.usedByteLength;
+    const points = pointsData.length / 6;
+    this.growUsage(points * kPointByteLength);
+    for (let i = 0; i < pointsData.length; i += 6) {
+      this.setPoint(
+        offset + i * kPointByteLength,
+        pointData[i + 0],
+        pointData[i + 1],
+        pointData[i + 2],
+        pointData[i + 3],
+        pointData[i + 4],
+        pointData[i + 5],
+      );
+    }
+  }
+
   setPoint(offset, x, y, size, r, g, b) {
     this.dataView.setFloat32(offset + 0, x, kLittleEndian);
     this.dataView.setFloat32(offset + 4, y, kLittleEndian);
@@ -87,5 +104,13 @@ export class LineBuffer {
       this.gl.STATIC_DRAW,
     );
     this.dirty = false;
+  }
+
+  delete() {
+    this.gl.deleteBuffer(this.glBuffer);
+    this.buffer = null;
+    this.dataView = null;
+    this.glBuffer = null;
+    this.usedByteLength = 0;
   }
 }
