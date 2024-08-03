@@ -1,3 +1,10 @@
+# 2024-08-04
+- Updated addRawPointsData() to accept RGB as a u24.
+  - Setting on data view directly.
+  - Turns out need to not use kLittleEndian for the u32 since it's read as individual u8s in sequence on the GPU.
+- Would like to get antialiasing of the lines back, needs use of render buffers and additional blit passes.
+  - Can probably add a render buffer to each FrameBuffer for line drawings to use and group drawings that flatten pixelSize or opacity can ensure the render buffer is blitted down.
+
 # 2024-08-03
 - Fix bug in addRawPointsData().
   - Never called it before, not surprised it had bugs.

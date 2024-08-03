@@ -1,10 +1,10 @@
 import {logIf} from '../utils.js';
-import {kPointByteLength, identityMat3} from './utils.js';
+import {kPointByteLength, kIdentityMat3} from './utils.js';
 
 export class LineProgram {
   static draw(gl, glBuffer, pointCount, width, height, pixelSize, transform) {
-    if (!this.glProgram) {
-      this.glProgram = gl.createProgram();
+    if (!this.program) {
+      this.program = gl.createProgram();
       const vertexShader = gl.createShader(gl.VERTEX_SHADER);
       gl.shaderSource(vertexShader, `#version 300 es
         precision mediump float;
@@ -126,31 +126,33 @@ export class LineProgram {
       gl.compileShader(fragmentShader);
       logIf(gl.getShaderInfoLog(fragmentShader));
 
-      gl.attachShader(this.glProgram, vertexShader);
-      gl.attachShader(this.glProgram, fragmentShader);
-      gl.linkProgram(this.glProgram);
-      logIf(gl.getProgramInfoLog(this.glProgram));
+      gl.attachShader(this.program, vertexShader);
+      gl.attachShader(this.program, fragmentShader);
+      gl.linkProgram(this.program);
+      logIf(gl.getProgramInfoLog(this.program));
 
       this.uniformLocation = {
-        width: gl.getUniformLocation(this.glProgram, 'width'),
-        height: gl.getUniformLocation(this.glProgram, 'height'),
-        pixelSize: gl.getUniformLocation(this.glProgram, 'pixelSize'),
-        transform: gl.getUniformLocation(this.glProgram, 'transform'),
+        width: gl.getUniformLocation(this.program, 'width'),
+        height: gl.getUniformLocation(this.program, 'height'),
+        pixelSize: gl.getUniformLocation(this.program, 'pixelSize'),
+        transform: gl.getUniformLocation(this.program, 'transform'),
       };
 
-      gl.useProgram(this.glProgram);
+      gl.useProgram(this.program);
       gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
 
       this.attributeLocation = {};
       for (const attribute of ['fromPosition', 'fromSize', 'fromColour', 'toPosition', 'toSize', 'toColour']) {
-        const location = gl.getAttribLocation(this.glProgram, attribute);
+        const location = gl.getAttribLocation(this.program, attribute);
         this.attributeLocation[attribute] = location;
         gl.enableVertexAttribArray(location);
         gl.vertexAttribDivisor(location, 1);
       };
     }
 
-    gl.useProgram(this.glProgram);
+    gl.disable(gl.BLEND);
+
+    gl.useProgram(this.program);
     gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
 
     gl.vertexAttribPointer(this.attributeLocation.fromPosition, 2, gl.FLOAT, gl.FALSE, kPointByteLength, 0);
@@ -164,7 +166,7 @@ export class LineProgram {
     gl.uniform1f(this.uniformLocation.height, height);
     gl.uniform1f(this.uniformLocation.pixelSize, pixelSize);
 
-    gl.uniformMatrix3fv(this.uniformLocation.transform, /*transpose=*/false, transform ?? identityMat3);
+    gl.uniformMatrix3fv(this.uniformLocation.transform, /*transpose=*/false, transform ?? kIdentityMat3);
 
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 8, pointCount - 1);
   }

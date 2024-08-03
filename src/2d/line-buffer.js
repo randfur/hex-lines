@@ -46,20 +46,17 @@ export class LineBuffer {
   }
 
   addRawPointsData(pointsData) {
-    const kPointItemLength = 6;
-    const offset = this.usedByteLength;
+    // pointsData is a list of (x, y, size, rgb as u24) repeating.
+    const kPointItemLength = 4;
+    const startOffset = this.usedByteLength;
     const points = pointsData.length / kPointItemLength;
     this.growUsage(points * kPointByteLength);
-    for (let i = 0; i < pointsData.length; i += kPointItemLength) {
-      this.setPoint(
-        offset + (i / kPointItemLength) * kPointByteLength,
-        pointsData[i + 0],
-        pointsData[i + 1],
-        pointsData[i + 2],
-        pointsData[i + 3],
-        pointsData[i + 4],
-        pointsData[i + 5],
-      );
+    for (let i = 0; i < points; ++i) {
+      const offset = i * kPointByteLength;
+      this.dataView.setFloat32(offset + 0, pointsData[i * kPointItemLength + 0], kLittleEndian);
+      this.dataView.setFloat32(offset + 4, pointsData[i * kPointItemLength + 1], kLittleEndian);
+      this.dataView.setFloat32(offset + 8, pointsData[i * kPointItemLength + 2], kLittleEndian);
+      this.dataView.setUint32(offset + 12, pointsData[i * kPointItemLength + 3] << 8, false);
     }
   }
 

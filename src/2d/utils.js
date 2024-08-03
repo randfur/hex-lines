@@ -9,7 +9,7 @@ export const kPointByteLength = (
   0
 );
 
-export const identityMat3 = new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);
+export const kIdentityMat3 = new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);
 
 export function multiplyMat3(left, right, out) {
   // 0 1 2

@@ -3,9 +3,6 @@ import {logIf} from '../utils.js';
 export class TextureProgram {
   static draw(gl, glTexture, opacity) {
     if (!this.program) {
-      gl.enable(gl.BLEND);
-      gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-
       this.program = gl.createProgram();
 
       const vertexShader = gl.createShader(gl.VERTEX_SHADER);
@@ -58,11 +55,17 @@ export class TextureProgram {
       };
     }
 
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
     gl.useProgram(this.program);
+
     gl.uniform1i(this.uniformLocation.texture2D, 0);
     gl.uniform1f(this.uniformLocation.opacity, opacity);
+
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, glTexture);
+
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
 }
