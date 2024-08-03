@@ -1,3 +1,9 @@
+# 2024-08-03
+- Fix bug in addRawPointsData().
+  - Never called it before, not surprised it had bugs.
+  - Typo in variable name.
+  - Did not account for += 6 when getting the index of which point was being set.
+
 # 2024-07-27
 - Put basic-2d-next demo stars into a circle.
 

@@ -46,18 +46,19 @@ export class LineBuffer {
   }
 
   addRawPointsData(pointsData) {
+    const kPointItemLength = 6;
     const offset = this.usedByteLength;
-    const points = pointsData.length / 6;
+    const points = pointsData.length / kPointItemLength;
     this.growUsage(points * kPointByteLength);
-    for (let i = 0; i < pointsData.length; i += 6) {
+    for (let i = 0; i < pointsData.length; i += kPointItemLength) {
       this.setPoint(
-        offset + i * kPointByteLength,
-        pointData[i + 0],
-        pointData[i + 1],
-        pointData[i + 2],
-        pointData[i + 3],
-        pointData[i + 4],
-        pointData[i + 5],
+        offset + (i / kPointItemLength) * kPointByteLength,
+        pointsData[i + 0],
+        pointsData[i + 1],
+        pointsData[i + 2],
+        pointsData[i + 3],
+        pointsData[i + 4],
+        pointsData[i + 5],
       );
     }
   }
