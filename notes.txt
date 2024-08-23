@@ -1,3 +1,47 @@
+# 2024-08-23
+- Goal: Get antialiasing.
+  - Need renderbuffer to do so.
+  - Makes the FrameBuffer stack much more complex.
+  - For each FrameBuffer level:
+    - Render into renderbuffer with antialiasing.
+    - Copy into texture ready for compositing into parent FrameBuffer.
+  - Optimisation:
+    - Is this already optimal given GroupDrawings don't create a nested level if they don't require compositing?
+    - Need to assess specific examples.
+    - Value of only copying sub regions becomes more valuable now given there's two buffer copies happening.
+  - Need to juggle within the FrameBuffer whether the renderbuffer has the data or the texture does.
+    - LineDrawing:
+      - Target existing content in renderbuffer:
+        - Render to renderbuffer.
+      - Target existing content in texture:
+        - Copy texture to renderbuffer.
+        - Render to renderbuffer.
+    - GroupDrawing compositing:
+      - Target existing context in renderbuffer:
+        - Nested content in renderbuffer:
+          - Copy nested content to nested texture.
+          - Composite nested texture to target renderbuffer.
+        - Nested content in texture:
+          - Composite nested texture to target renderbuffer.
+      - Target existing context in texture:
+        - Nested content in renderbuffer:
+          - Copy nested content to nested texture.
+          - Composite nested texture to target texture.
+        - Nested content in texture:
+          - Composite nested texture to target texture.
+    - Kinda messy, some structure to it but not sure how nicely it will generalise across all flows.
+    - Possible general flow:
+      - LineDrawing:
+        - Ensure target content is in renderbuffer.
+        - Render to target renderbuffer.
+      - GroupDrawing compositing:
+        - Ensure nested content is in texture.
+        - Render to target (whichever buffer is active).
+    - FrameBuffer API:
+      - activateRenderbuffer()
+      - activateTexture()
+      - getActiveFramebuffer()
+
 # 2024-08-04
 - Updated addRawPointsData() to accept RGB as a u24.
   - Setting on data view directly.
