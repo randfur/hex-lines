@@ -8,14 +8,21 @@ async function main() {
   const {hexLines2d, width, height} = HexLines2d.setupFullPageCanvas();
 
   const stars = (() => {
+    const maxRadius = Math.max(width, height) / 2;
     const lineBuffer = hexLines2d.createLineBuffer();
     lineBuffer.addDots(
       range(2000).map(i => {
-        const radius = Math.random() * Math.max(width, height) / 2;
+        const radius = Math.random() * maxRadius;
         const angle = Math.random() * TAU;
+        const lightness = clamp(1 - (radius - Math.random() * 50) / maxRadius) * 255;
         const x = Math.cos(angle) * radius;
         const y = Math.sin(angle) * radius;
-        return {position: {x, y}, size: 20, angle, colour: {r: 255, g: 255, b: 255}};
+        return {
+          position: {x, y},
+          size: 20,
+          angle,
+          colour: {r: lightness, g: lightness, b: lightness},
+        };
       }),
     );
     return new LineDrawing({lineBuffer});
@@ -130,6 +137,10 @@ function* enumerate(list) {
   for (let i = 0; i < list.length; ++i) {
     yield [i, list[i]];
   }
+}
+
+function clamp(x) {
+  return Math.min(1, Math.max(0, x));
 }
 
 main();
