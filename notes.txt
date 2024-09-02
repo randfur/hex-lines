@@ -1,3 +1,11 @@
+# 2024-09-02
+- Fixed angle bug where 0 angle disabled the dot.
+  - Using isnan(fromSize) to determine whether a hex should be drawn.
+  - Turns out setting undefined in float32 sets it to NaN.
+    - Number(undefined) is NaN.
+- Rotated angle 0 so the hexagon was horizontal.
+- Made angle optional and default to 0 for dots.
+
 # 2024-08-23
 - Goal: Get antialiasing.
   - Need renderbuffer to do so.

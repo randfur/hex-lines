@@ -75,7 +75,7 @@ export class LineProgram {
 
         void main() {
           Point point = points[gl_VertexID];
-          float enabled = float(fromSize > 0.0 && toSize > 0.0);
+          bool enabled = !isnan(fromSize);
           // When two points are at the same place treat it as a
           // standalone dot and use the toSize as the angle of the dot.
           bool dot = fromPosition == toPosition;
@@ -93,7 +93,7 @@ export class LineProgram {
             rotate(
               point.offset,
               dot
-              ? vec2(cos(toSize), sin(toSize))
+              ? vec2(sin(toSize), -cos(toSize))
               : getRotation(
                 applyTransform(fromPosition),
                 applyTransform(toPosition))
@@ -101,7 +101,7 @@ export class LineProgram {
           );
 
           gl_Position = vec4(
-            enabled * (position + offset) / (vec2(width, height) / 2.0) / pixelSize,
+            float(enabled) * (position + offset) / (vec2(width, height) / 2.0) / pixelSize,
             0,
             1
           );

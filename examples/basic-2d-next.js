@@ -33,7 +33,7 @@ async function main() {
       {position: {x: -200, y: 140}, size: 20, colour: {r: 255, g: 0, b: 0}},
     ]);
     lineBuffer.addDot(
-      {position: {x: 190, y: -130}, size: 50, colour: {r: 255, g: 255, b: 255}}
+      {position: {x: 190, y: -120}, size: 50, colour: {r: 255, g: 255, b: 255}}
     );
     return new GroupDrawing({
       opacity: 0.5,
@@ -43,42 +43,76 @@ async function main() {
     });
   })();
 
+  const circles = [
+    {r: 255, g: 0, b: 0},
+    {r: 255, g: 255, b: 0},
+    {r: 0, g: 0, b: 255},
+  ].map(colour => {
+    const lineBuffer = hexLines2d.createLineBuffer();
+    lineBuffer.addDot({
+      position: {x: 0, y: 0},
+      size: 300,
+      colour,
+    });
+    return new LineDrawing({lineBuffer});
+  });
+
   const drawing = new GroupDrawing({
     pixelSize: 4,
     children: [
       stars,
       shape,
+      ...circles.map(circle => new GroupDrawing({
+        children: [circle],
+        opacity: 0.5,
+      })),
     ],
   });
 
 
   while (true) {
-    await new Promise(requestAnimationFrame);
+    const time = await new Promise(requestAnimationFrame);
 
-    const angle = Math.PI * 2 * performance.now() / 5000;
-    const c = Math.cos(angle)
-    const d = -Math.sin(angle)
-    const e = 0
+    {
+      const angle = TAU * time / 5000;
+      const a = Math.cos(angle);
+      const b = -Math.sin(angle);
+      const c = 0;
 
-    const f = Math.sin(angle)
-    const g = Math.cos(angle)
-    const h = 0
+      const d = Math.sin(angle);
+      const e = Math.cos(angle);
+      const f = 0;
 
-    const i = 0
-    const j = 0
-    const k = 1
+      const g = 0;
+      const h = 0;
+      const i = 1;
 
-    shape.transform = new Float32Array([
-      c, d, e,
-      f, g, h,
-      i, j, k,
-    ]);
+      shape.transform = new Float32Array([
+        a, b, c,
+        d, e, f,
+        g, h, i,
+      ]);
+    }
 
-    drawing.transform = new Float32Array([
-      1, 0, Math.cos(performance.now() / 1000) * 200,
-      0, 1, Math.sin(performance.now() / 1000) * 200,
-      0, 0, 1,
-    ]);
+    for (const [i, circle] of enumerate(circles)) {
+      const angle = -TAU * (time + 5000) / (4000 + i * 1234);
+      const radius = 400;
+      circle.transform = new Float32Array([
+        1, 0, Math.cos(angle) * radius,
+        0, 1, Math.sin(angle) * radius,
+        0, 0, 1,
+      ]);
+    }
+
+    {
+      const angle = time / 1000;
+      const radius = 100;
+      drawing.transform = new Float32Array([
+        1, 0, Math.cos(angle) * radius,
+        0, 1, Math.sin(angle) * radius,
+        0, 0, 1,
+      ]);
+    }
 
     hexLines2d.draw(drawing);
   }
@@ -90,6 +124,12 @@ function range(n) {
     result.push(i);
   }
   return result;
+}
+
+function* enumerate(list) {
+  for (let i = 0; i < list.length; ++i) {
+    yield [i, list[i]];
+  }
 }
 
 main();

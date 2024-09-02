@@ -29,7 +29,7 @@ export class LineBuffer {
     for (const {position: {x, y}, size, angle, colour: {r, g, b}} of dots) {
       this.setPoint(offset, x, y, size, r, g, b);
       offset += kPointByteLength;
-      this.setPoint(offset, x, y, angle, r, g, b);
+      this.setPoint(offset, x, y, angle ?? 0, r, g, b);
       offset += kPointByteLength;
       this.setNull(offset);
       offset += kPointByteLength;
@@ -41,7 +41,7 @@ export class LineBuffer {
     const offset = this.usedByteLength;
     this.growUsage(kPointByteLength * 3);
     this.setPoint(offset + kPointByteLength * 0, x, y, size, r, g, b);
-    this.setPoint(offset + kPointByteLength * 1, x, y, angle, r, g, b);
+    this.setPoint(offset + kPointByteLength * 1, x, y, angle ?? 0, r, g, b);
     this.setNull(offset + kPointByteLength * 2);
   }
 
@@ -70,7 +70,7 @@ export class LineBuffer {
   }
 
   setNull(offset) {
-    this.dataView.setFloat32(offset + 8, 0, kLittleEndian);
+    this.dataView.setFloat32(offset + 8, undefined, kLittleEndian);
   }
 
   clear() {
