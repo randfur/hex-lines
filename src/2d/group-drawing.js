@@ -9,16 +9,16 @@ export class GroupDrawing {
     this.children = children;
   }
 
-  draw(gl, framebufferPoolMap, mat3Pool, targetFramebuffer, targetPixelSize, transform) {
+  draw(gl, layerPoolMap, mat3Pool, targetLayer, targetPixelSize, transform) {
     const composedTransform = multiplyMaybeMat3(mat3Pool, transform, this.transform);
 
     if (this.opacity === 1 && this.pixelSize <= targetPixelSize) {
       for (const child of this.children) {
         child.draw(
           gl,
-          framebufferPoolMap,
+          layerPoolMap,
           mat3Pool,
-          targetFramebuffer,
+          targetLayer,
           targetPixelSize,
           composedTransform,
         );
@@ -27,21 +27,25 @@ export class GroupDrawing {
     }
 
     const effectivePixelSize = Math.max(this.pixelSize, targetPixelSize);
-    const temporaryFramebuffer = framebufferPoolMap.aquire(effectivePixelSize);
-    temporaryFramebuffer.drawTo();
+    const nestedLayer = layerPoolMap.aquire(effectivePixelSize);
+    nestedLayer.targetRenderbuffer();
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    nestedLayer.targetTextureWithFallback();
     gl.clear(gl.COLOR_BUFFER_BIT);
     for (const child of this.children) {
       child.draw(
         gl,
-        framebufferPoolMap,
+        layerPoolMap,
         mat3Pool,
-        temporaryFramebuffer,
+        nestedLayer,
         effectivePixelSize,
         composedTransform,
       );
     }
-    targetFramebuffer.drawTo();
-    TextureProgram.draw(gl, temporaryFramebuffer.glTexture, this.opacity);
-    framebufferPoolMap.release(effectivePixelSize);
+    console.log('want to blit', this);
+    nestedLayer.maybeBlitRenderbufferToTexture();
+    targetLayer.targetTextureWithFallback();
+    TextureProgram.draw(gl, nestedLayer.texture, this.opacity);
+    layerPoolMap.release(effectivePixelSize);
   }
 }

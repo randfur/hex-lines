@@ -69,10 +69,10 @@ async function main() {
     children: [
       stars,
       shape,
-      ...circles.map(circle => new GroupDrawing({
-        children: [circle],
-        opacity: 0.5,
-      })),
+      // ...circles.map(circle => new GroupDrawing({
+      //   children: [circle],
+      //   opacity: 0.5,
+      // })),
     ],
   });
 
@@ -122,6 +122,7 @@ async function main() {
     }
 
     hexLines2d.draw(drawing);
+    return;
   }
 }
 

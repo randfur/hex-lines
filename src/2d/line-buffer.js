@@ -70,7 +70,7 @@ export class LineBuffer {
   }
 
   setNull(offset) {
-    this.dataView.setFloat32(offset + 8, undefined, kLittleEndian);
+    this.dataView.setFloat32(offset + 8, NaN, kLittleEndian);
   }
 
   clear() {

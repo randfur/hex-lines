@@ -1,3 +1,15 @@
+# 2024-09-04
+- NaN is actually a constant you can use in JS, replaced the use of undefined.
+- Started implementing the renderbuffer + texture rewrite.
+  - Renamed FrameBuffer to Layer.
+  - Got it kind of working.
+    - Render buffer multi sampling works.
+    - Stars aren't rendering but shape and circles are.
+    - Stars are Group(Line) while shape and cirles are Group(Group(Line)).
+    - Surprising that the more simpler one is working.
+    - Perhaps an issue with blitting the renderbuffer onto the texture.
+    - Turns out the stars do draw but they are clobbered by the shape drawing.
+
 # 2024-09-02
 - Fixed angle bug where 0 angle disabled the dot.
   - Using isnan(fromSize) to determine whether a hex should be drawn.
@@ -5,6 +17,7 @@
     - Number(undefined) is NaN.
 - Rotated angle 0 so the hexagon was horizontal.
 - Made angle optional and default to 0 for dots.
+- Added spinning transparent circles to basic-2d-next example.
 
 # 2024-08-23
 - Goal: Get antialiasing.

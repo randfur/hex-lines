@@ -7,15 +7,15 @@ export class LineDrawing {
     this.transform = transform;
   }
 
-  draw(gl, framebufferPoolMap, mat3Pool, targetFramebuffer, pixelSize, transform) {
+  draw(gl, layerPoolMap, mat3Pool, targetLayer, pixelSize, transform) {
     this.lineBuffer.ensureUploaded();
-    targetFramebuffer.drawTo();
+    targetLayer.targetRenderbuffer();
     LineProgram.draw(
       gl,
       this.lineBuffer.glBuffer,
       Math.floor(this.lineBuffer.usedByteLength / kPointByteLength),
-      targetFramebuffer.width,
-      targetFramebuffer.height,
+      targetLayer.width,
+      targetLayer.height,
       pixelSize,
       multiplyMaybeMat3(mat3Pool, transform, this.transform),
     );
