@@ -10,6 +10,7 @@ export class GroupDrawing {
   }
 
   draw(gl, layerPoolMap, mat3Pool, targetLayer, targetPixelSize, transform) {
+    console.log('draw', this);
     const composedTransform = multiplyMaybeMat3(mat3Pool, transform, this.transform);
 
     if (this.opacity === 1 && this.pixelSize <= targetPixelSize) {
@@ -28,10 +29,8 @@ export class GroupDrawing {
 
     const effectivePixelSize = Math.max(this.pixelSize, targetPixelSize);
     const nestedLayer = layerPoolMap.aquire(effectivePixelSize);
-    nestedLayer.targetRenderbuffer();
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    nestedLayer.targetTextureWithFallback();
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    console.log({nestedLayer});
+    nestedLayer.clear();
     for (const child of this.children) {
       child.draw(
         gl,
@@ -42,8 +41,7 @@ export class GroupDrawing {
         composedTransform,
       );
     }
-    console.log('want to blit', this);
-    nestedLayer.maybeBlitRenderbufferToTexture();
+    console.log('want texture', this);
     targetLayer.targetTextureWithFallback();
     TextureProgram.draw(gl, nestedLayer.texture, this.opacity);
     layerPoolMap.release(effectivePixelSize);

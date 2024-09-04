@@ -8,7 +8,8 @@
     - Stars are Group(Line) while shape and cirles are Group(Group(Line)).
     - Surprising that the more simpler one is working.
     - Perhaps an issue with blitting the renderbuffer onto the texture.
-    - Turns out the stars do draw but they are clobbered by the shape drawing.
+    - Turns out the stars do draw but they get clobbered by the shape drawing.
+    - Subsequent circle drawings don't clobber the shape drawings.
 
 # 2024-09-02
 - Fixed angle bug where 0 angle disabled the dot.

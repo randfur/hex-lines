@@ -8,6 +8,7 @@ export class LineDrawing {
   }
 
   draw(gl, layerPoolMap, mat3Pool, targetLayer, pixelSize, transform) {
+    console.log('draw', this);
     this.lineBuffer.ensureUploaded();
     targetLayer.targetRenderbuffer();
     LineProgram.draw(

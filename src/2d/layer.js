@@ -24,7 +24,7 @@ export class Layer {
 
     const renderbuffer = gl.createRenderbuffer();
     gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 8, gl.RGBA8, width, height);
+    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 6, gl.RGBA8, width, height);
 
     const renderbufferFramebuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, renderbufferFramebuffer);
@@ -52,24 +52,45 @@ export class Layer {
     this.targetFramebuffer = renderbufferFramebuffer;
   }
 
+  clear() {
+    if (this.textureFramebuffer) {
+      this.gl.bindFramebuffer(this.gl.DRAW_FRAMEBUFFER, this.textureFramebuffer);
+      this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+    }
+    this.gl.bindFramebuffer(this.gl.DRAW_FRAMEBUFFER, this.renderbufferFramebuffer);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+  }
+
   targetRenderbuffer() {
+    if (this.textureFrameBuffer && this.targetFramebuffer === this.textureFramebuffer) {
+      console.log('blit texture to renderbuffer');
+      this.gl.bindFramebuffer(this.gl.READ_FRAMEBUFFER, this.textureFramebuffer);
+      this.gl.bindFramebuffer(this.gl.DRAW_FRAMEBUFFER, this.renderbufferFramebuffer);
+      this.gl.blitFramebuffer(0, 0, this.width, this.height, 0, 0, this.width, this.height, this.gl.COLOR_BUFFER_BIT, this.gl.NEAREST);
+    }
     this.targetFramebuffer = this.renderbufferFramebuffer;
     this.gl.bindFramebuffer(this.gl.DRAW_FRAMEBUFFER, this.targetFramebuffer);
     this.gl.viewport(0, 0, this.width, this.height);
   }
 
-  targetTextureWithFallback() {
-    this.targetFramebuffer = this.textureFramebuffer ?? this.renderbufferFramebuffer;
+  targetTexture() {
+    console.assert(this.textureFramebuffer);
+    if (this.renderbufferFramebuffer && this.targetFramebuffer === this.renderbufferFramebuffer) {
+      console.log('blit texture to renderbuffer');
+      this.gl.bindFramebuffer(this.gl.READ_FRAMEBUFFER, this.renderbufferFramebuffer);
+      this.gl.bindFramebuffer(this.gl.DRAW_FRAMEBUFFER, this.textureFramebuffer);
+      this.gl.blitFramebuffer(0, 0, this.width, this.height, 0, 0, this.width, this.height, this.gl.COLOR_BUFFER_BIT, this.gl.NEAREST);
+    }
+    this.targetFramebuffer = this.textureFramebuffer;
     this.gl.bindFramebuffer(this.gl.DRAW_FRAMEBUFFER, this.targetFramebuffer);
     this.gl.viewport(0, 0, this.width, this.height);
   }
 
-  maybeBlitRenderbufferToTexture() {
-    if (this.targetFramebuffer === this.renderbufferFramebuffer) {
-      console.log('blit');
-      this.gl.bindFramebuffer(this.gl.READ_FRAMEBUFFER, this.renderbufferFramebuffer);
-      this.gl.bindFramebuffer(this.gl.DRAW_FRAMEBUFFER, this.textureFramebuffer);
-      this.gl.blitFramebuffer(0, 0, this.width, this.height, 0, 0, this.width, this.height, this.gl.COLOR_BUFFER_BIT, this.gl.NEAREST);
+  targetTextureWithFallback() {
+    if (this.textureFramebuffer) {
+      this.targetTexture();
+    } else {
+      this.targetRenderbuffer();
     }
   }
 }

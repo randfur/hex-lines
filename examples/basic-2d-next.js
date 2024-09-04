@@ -68,7 +68,7 @@ async function main() {
     pixelSize: 4,
     children: [
       stars,
-      shape,
+      // shape,
       // ...circles.map(circle => new GroupDrawing({
       //   children: [circle],
       //   opacity: 0.5,
@@ -122,6 +122,7 @@ async function main() {
     }
 
     hexLines2d.draw(drawing);
+    // hexLines2d.draw(circles[0]);
     return;
   }
 }
