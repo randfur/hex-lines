@@ -24,7 +24,7 @@ export class Layer {
 
     const renderbuffer = gl.createRenderbuffer();
     gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 6, gl.RGBA8, width, height);
+    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 5, gl.RGBA8, width, height);
 
     const renderbufferFramebuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, renderbufferFramebuffer);
@@ -49,7 +49,7 @@ export class Layer {
     this.textureFramebuffer = textureFramebuffer;
     this.renderbuffer = renderbuffer;
     this.renderbufferFramebuffer = renderbufferFramebuffer;
-    this.targetFramebuffer = renderbufferFramebuffer;
+    this.targetFramebuffer = null;
   }
 
   clear() {
@@ -59,11 +59,11 @@ export class Layer {
     }
     this.gl.bindFramebuffer(this.gl.DRAW_FRAMEBUFFER, this.renderbufferFramebuffer);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+    this.targetFramebuffer = null;
   }
 
   targetRenderbuffer() {
     if (this.textureFrameBuffer && this.targetFramebuffer === this.textureFramebuffer) {
-      console.log('blit texture to renderbuffer');
       this.gl.bindFramebuffer(this.gl.READ_FRAMEBUFFER, this.textureFramebuffer);
       this.gl.bindFramebuffer(this.gl.DRAW_FRAMEBUFFER, this.renderbufferFramebuffer);
       this.gl.blitFramebuffer(0, 0, this.width, this.height, 0, 0, this.width, this.height, this.gl.COLOR_BUFFER_BIT, this.gl.NEAREST);
@@ -76,7 +76,6 @@ export class Layer {
   targetTexture() {
     console.assert(this.textureFramebuffer);
     if (this.renderbufferFramebuffer && this.targetFramebuffer === this.renderbufferFramebuffer) {
-      console.log('blit texture to renderbuffer');
       this.gl.bindFramebuffer(this.gl.READ_FRAMEBUFFER, this.renderbufferFramebuffer);
       this.gl.bindFramebuffer(this.gl.DRAW_FRAMEBUFFER, this.textureFramebuffer);
       this.gl.blitFramebuffer(0, 0, this.width, this.height, 0, 0, this.width, this.height, this.gl.COLOR_BUFFER_BIT, this.gl.NEAREST);

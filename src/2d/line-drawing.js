@@ -2,13 +2,13 @@ import {LineProgram} from './line-program.js';
 import {kPointByteLength, multiplyMaybeMat3} from './utils.js';
 
 export class LineDrawing {
-  constructor({lineBuffer, transform=null}) {
+  constructor({name=null, lineBuffer, transform=null}) {
+    this.name = name;
     this.lineBuffer = lineBuffer;
     this.transform = transform;
   }
 
   draw(gl, layerPoolMap, mat3Pool, targetLayer, pixelSize, transform) {
-    console.log('draw', this);
     this.lineBuffer.ensureUploaded();
     targetLayer.targetRenderbuffer();
     LineProgram.draw(

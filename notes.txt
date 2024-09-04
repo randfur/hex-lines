@@ -10,6 +10,22 @@
     - Perhaps an issue with blitting the renderbuffer onto the texture.
     - Turns out the stars do draw but they get clobbered by the shape drawing.
     - Subsequent circle drawings don't clobber the shape drawings.
+  - Fixed the bugs.
+    - Wasn't blit transferring the buffer as a layer was converted between texture and renderbuffer as its target.
+  - Picking sample count.
+    - 3 is acceptable.
+    - 6 is great.
+    - Going with 4 because that's what WebGPU accepts.
+      - https://webgpufundamentals.org/webgpu/lessons/webgpu-multisampling.html
+      - Looks like WebGPU supports multisampling on textures, this eliminates the need to blit between the two and could be a significant performance boost.
+      - Will maybe one day implement a WebGPU graphics backend that kicks in when it's available.
+- Hex lines 2D is done?
+  - No, should really add sub section rendering to avoid copying the entire texture over for every layer.
+  - Functionality wise, probably yes.
+  - Maybe add a colour transform matrix for drawings.
+- basic-2d-next demo.
+  - Added more circles.
+  - Nested them into each other as groups with opacity to demonstrate nested opacity.
 
 # 2024-09-02
 - Fixed angle bug where 0 angle disabled the dot.

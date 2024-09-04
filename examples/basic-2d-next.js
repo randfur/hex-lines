@@ -25,7 +25,10 @@ async function main() {
         };
       }),
     );
-    return new LineDrawing({lineBuffer});
+    return new LineDrawing({
+      name: 'stars',
+      lineBuffer,
+    });
   })();
 
   const shape = (() => {
@@ -43,6 +46,7 @@ async function main() {
       {position: {x: 190, y: -120}, size: 50, colour: {r: 255, g: 255, b: 255}}
     );
     return new GroupDrawing({
+      name: 'shape',
       opacity: 0.5,
       children: [
         new LineDrawing({lineBuffer}),
@@ -52,8 +56,11 @@ async function main() {
 
   const circles = [
     {r: 255, g: 0, b: 0},
+    {r: 255, g: 127, b: 0},
     {r: 255, g: 255, b: 0},
+    {r: 0, g: 255, b: 0},
     {r: 0, g: 0, b: 255},
+    {r: 255, g: 0, b: 255},
   ].map(colour => {
     const lineBuffer = hexLines2d.createLineBuffer();
     lineBuffer.addDot({
@@ -61,18 +68,22 @@ async function main() {
       size: 300,
       colour,
     });
-    return new LineDrawing({lineBuffer});
+    return new LineDrawing({
+      name: 'circle',
+      lineBuffer,
+    });
   });
 
   const drawing = new GroupDrawing({
+    name: 'drawing',
     pixelSize: 4,
     children: [
       stars,
-      // shape,
-      // ...circles.map(circle => new GroupDrawing({
-      //   children: [circle],
-      //   opacity: 0.5,
-      // })),
+      shape,
+      circles.reverse().reduce((drawing, circle) => new GroupDrawing({
+        children: drawing ? [circle, drawing] : [circle],
+        opacity: 0.75,
+      }), null),
     ],
   });
 
@@ -102,7 +113,7 @@ async function main() {
     }
 
     for (const [i, circle] of enumerate(circles)) {
-      const angle = -TAU * (time + 5000) / (4000 + i * 1234);
+      const angle = -TAU * time / (8000 - i * 1000);
       const radius = 400;
       circle.transform = new Float32Array([
         1, 0, Math.cos(angle) * radius,
@@ -122,8 +133,6 @@ async function main() {
     }
 
     hexLines2d.draw(drawing);
-    // hexLines2d.draw(circles[0]);
-    return;
   }
 }
 
