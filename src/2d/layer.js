@@ -1,3 +1,5 @@
+const kMaxSamples = 5;
+
 export class Layer {
   static createCanvasBacking(gl, width, height) {
     return new Layer({
@@ -24,7 +26,8 @@ export class Layer {
 
     const renderbuffer = gl.createRenderbuffer();
     gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 5, gl.RGBA8, width, height);
+    const samples = Math.min(gl.getParameter(gl.MAX_SAMPLES), kMaxSamples);
+    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, gl.RGBA8, width, height);
 
     const renderbufferFramebuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, renderbufferFramebuffer);

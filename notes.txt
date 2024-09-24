@@ -1,3 +1,9 @@
+# 2024-09-25
+- Found out it doesn't work on mobile Chrome.
+  - Multisample count is too high.
+  - Found out how to query max multisamples.
+  - Works now.
+
 # 2024-09-04
 - NaN is actually a constant you can use in JS, replaced the use of undefined.
 - Started implementing the renderbuffer + texture rewrite.
