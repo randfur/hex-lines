@@ -1,4 +1,4 @@
-export const kLittleEndian = new DataView(new Uint16Array([1]).buffer).getUint8(0, true);
+export const kLittleEndian = new DataView(new Uint16Array([1]).buffer).getUint8(0);
 
 export function rgbaToUint32(r, g, b, a) {
   return ((r & 0xff) << (3 * 8)) |

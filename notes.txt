@@ -1,3 +1,7 @@
+# 2025-08-28
+- getUint8(0, true) -> getUint8(0)
+  - No endian parameter since it's only reading a single byte.
+
 # 2024-09-25
 - Found out it doesn't work on mobile Chrome.
   - Multisample count is too high.
