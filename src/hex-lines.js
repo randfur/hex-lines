@@ -35,6 +35,8 @@ export class HexLinesContext {
     this.pixelSize = pixelSize;
     this.is3d = is3d;
     this.transformMatrix = createIdentityMatrix(this.is3d);
+    this.worldRayNear = {x: 0, y: 0, z: 0};
+    this.worldRayFar = {x: 0, y: 0, z: 0};
 
     this.canvas.width /= this.pixelSize;
     this.canvas.height /= this.pixelSize;
@@ -100,6 +102,31 @@ export class HexLinesContext {
 
   createLines() {
     return new HexLines(this);
+  }
+
+  // Returns its results in this.worldRayNear and this.worldRayFar.
+  getWorldRay(screenX, screenY, transformMatrix=this.transformMatrix) {
+    // Rendering pipeline:
+    //   World space
+    //     --Matrix transform-->
+    //   Camera space
+    //     --Divide by w-->
+    //   Clip space
+    //     --Aspect ratio-->
+    //   Viewport space
+    //     --Pixelation-->
+    //   Screen space
+
+    // Undo pixelation.
+    const viewportX = screenX / this.pixelSize;
+    const viewportY = screenY / this.pixelSize;
+
+    // Undo aspect ratio.
+    const clipX = (viewportX / this.canvas.width) * 2 - 1;
+    const clipY = 1 - viewportY / this.canvas.height * 2;
+
+    // Undo divide by w.
+    // TODO.
   }
 }
 

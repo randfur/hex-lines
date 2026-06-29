@@ -33,16 +33,12 @@ async function main() {
   while (true) {
     const time = await new Promise(requestAnimationFrame);
     const angle = time / 2000;
-    hexLinesContext.gl.uniformMatrix4fv(
-      hexLinesContext.uniformLocations.transform,
-      hexLinesContext.gl.FALSE,
-      new Float32Array([
-        Math.cos(angle), 0, Math.sin(angle), 0,
-        0, 1, 0, 0,
-        -Math.sin(angle), 0, Math.cos(angle), 900,
-        0, 0, 0, 1,
-      ]),
-    ),
+    hexLinesContext.transformMatrix = new Float32Array([
+      Math.cos(angle), 0, -Math.sin(angle), 0,
+      0, 1, 0, 0,
+      Math.sin(angle), 0, Math.cos(angle), 0,
+      0, 0, 900, 1,
+    ]);
     hexLines.draw();
   }
 }

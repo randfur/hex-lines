@@ -1,3 +1,15 @@
+# 2026-06-19
+- Fixed 3D example.
+  - Was trying to directly set shader transform.
+  - Needed to set HexLinesContext transform using new API.
+- Started implementing getWorldRay() to go from screen space to a ray in world space.
+  - Wrote out rendering pipeline.
+  - Revised how divide by w worked with z.
+  - Needs to invert the transform matrix?
+    - Inversion looks hard and scary: https://stackoverflow.com/a/44446912
+    - Seems like for typical rotation/translation matrices it doesn't require a full inversion: https://graphics.stanford.edu/courses/cs248-98-fall/Final/q4.html
+    - Need to experiment with this in a separate project.
+
 # 2025-08-28
 - getUint8(0, true) -> getUint8(0)
   - No endian parameter since it's only reading a single byte.
