@@ -221,6 +221,19 @@ class HexLines  {
     this.addPointFlat(x, y, z, size, r, g, b, a);
   }
 
+  addPointParts(position, size, colour) {
+    this.addPointFlat(
+      position.x,
+      position.y,
+      position.z ?? 0,
+      size,
+      colour.r,
+      colour.g,
+      colour.b,
+      colour.a ?? 255,
+    );
+  }
+
   addDot(hexPoint) {
     if (hexPoint === null) {
       this.addNull();
