@@ -1,3 +1,8 @@
+# 2026-09-17
+- There's a bug where HexLines.draw() wouldn't clear the screen if there was nothing to draw.
+  - You get "GL_INVALID_VALUE : glDrawArraysInstancedANGLE: primcount < 0" warning if you try to draw nothing in WebGL.
+  - Made it clear the colour buffer if drawing length is 0.
+
 # 2026-06-19
 - Fixed 3D example.
   - Was trying to directly set shader transform.

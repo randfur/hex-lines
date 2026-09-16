@@ -259,6 +259,7 @@ class HexLines  {
 
   draw() {
     if (this.length === 0) {
+      this.gl.clear(this.gl.COLOR_BUFFER_BIT);
       return;
     }
     this.gl.bindVertexArray(this.vertexArray);
