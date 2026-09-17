@@ -2,6 +2,8 @@
 - There's a bug where HexLines.draw() wouldn't clear the screen if there was nothing to draw.
   - You get "GL_INVALID_VALUE : glDrawArraysInstancedANGLE: primcount < 0" warning if you try to draw nothing in WebGL.
   - Made it clear the colour buffer if drawing length is 0.
+- Added setupFullPageContext option enableContextMenu default true.
+  - Disables the right click menu if set to false.
 
 # 2026-06-19
 - Fixed 3D example.

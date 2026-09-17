@@ -17,6 +17,9 @@ export class HexLinesContext {
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
+    if (!(hexLinesContextOptions.enableContextMenu ?? true)) {
+      canvas.addEventListener('contextmenu', event => event.preventDefault());
+    }
     document.body.append(canvas);
     const hexLinesContext = new HexLinesContext({
       canvas,
