@@ -1,3 +1,6 @@
+# 2026-09-19
+- Added HexLines.addDotParts() to match HexLines.addPointParts().
+
 # 2026-09-17
 - There's a bug where HexLines.draw() wouldn't clear the screen if there was nothing to draw.
   - You get "GL_INVALID_VALUE : glDrawArraysInstancedANGLE: primcount < 0" warning if you try to draw nothing in WebGL.

@@ -248,6 +248,12 @@ class HexLines  {
     this.addNull();
   }
 
+  addDotParts(position, size, colour) {
+    this.addPointParts(position, size, colour);
+    this.addPointParts(position, size, colour);
+    this.addNull();
+  }
+
   addPoints(hexPoints) {
     this.ensureCapacity(this.length + hexPoints.length);
     for (const hexPoint of hexPoints) {
